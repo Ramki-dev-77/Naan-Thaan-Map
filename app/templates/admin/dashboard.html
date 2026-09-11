@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard — Campus Navigation System{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+  <!-- Top Admin Navbar -->
+  <header class="admin-navbar">
+    <div class="admin-navbar-brand">
+      <a href="{{ url_for('main.index') }}" class="brand-back-btn" title="Back to Map">&larr; Map</a>
+      <span class="admin-title">Campus Governance & Topology Console</span>
+    </div>
+    <div class="admin-user-info">
+      <span class="user-badge">Admin: <strong>{{ admin_username }}</strong></span>
+      <a href="{{ url_for('admin.logout') }}" class="btn btn-sm btn-outline-danger">Log Out</a>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <!-- Metric KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <span class="kpi-label">Active Campuses</span>
+        <span class="kpi-value">{{ campuses|length }}</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Campus Buildings</span>
+        <span class="kpi-value">{{ buildings|length }}</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Facilities & POIs</span>
+        <span class="kpi-value">{{ facilities|length }}</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Walkway Nodes</span>
+        <span class="kpi-value">{{ node_count }}</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Walkway Edges</span>
+        <span class="kpi-value">{{ edge_count }}</span>
+      </div>
+    </div>
+
+    <!-- Admin Section Tabs -->
+    <div class="admin-tabs" role="tablist">
+      <button class="admin-tab active" data-tab="buildingsTab">Buildings & Rooms</button>
+      <button class="admin-tab" data-tab="facilitiesTab">Facilities</button>
+      <button class="admin-tab" data-tab="auditTab">Audit Logs</button>
+    </div>
+
+    <!-- Tab 1: Buildings & Rooms -->
+    <section id="buildingsTab" class="admin-tab-content active">
+      <div class="section-header">
+        <h2>Campus Buildings</h2>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Building Name</th>
+              <th>Floors</th>
+              <th>Accessible</th>
+              <th>Centroid Coordinates</th>
+              <th>Entrance Coordinates</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in buildings %}
+            <tr>
+              <td><span class="badge badge-code">{{ b.code }}</span></td>
+              <td><strong>{{ b.name }}</strong></td>
+              <td>{{ b.floors }}</td>
+              <td>{% if b.accessible %}<span class="badge badge-success">Yes</span>{% else %}<span class="badge badge-warning">No</span>{% endif %}</td>
+              <td><code>{{ "%.4f"|format(b.latitude) }}, {{ "%.4f"|format(b.longitude) }}</code></td>
+              <td><code>{{ "%.4f"|format(b.entrance_latitude or b.latitude) }}, {{ "%.4f"|format(b.entrance_longitude or b.longitude) }}</code></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Tab 2: Facilities -->
+    <section id="facilitiesTab" class="admin-tab-content">
+      <div class="section-header">
+        <h2>Campus Facilities & Points of Interest</h2>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Facility Name</th>
+              <th>Building</th>
+              <th>Hours</th>
+              <th>Coordinates</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for f in facilities %}
+            <tr>
+              <td><span class="badge" style="background-color: {{ f.category.color if f.category else '#666' }}; color: #fff;">{{ f.category.name if f.category else 'General' }}</span></td>
+              <td><strong>{{ f.name }}</strong></td>
+              <td>{{ f.building.name if f.building else 'Outdoor' }}</td>
+              <td>{{ f.opening_hours or 'N/A' }}</td>
+              <td><code>{{ "%.4f"|format(f.latitude) }}, {{ "%.4f"|format(f.longitude) }}</code></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Tab 3: Audit Logs -->
+    <section id="auditTab" class="admin-tab-content">
+      <div class="section-header">
+        <h2>Administrative Audit Trail</h2>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Timestamp (UTC)</th>
+              <th>Action</th>
+              <th>Entity</th>
+              <th>Admin</th>
+              <th>IP Address</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in recent_logs %}
+            <tr>
+              <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+              <td><code>{{ log.action }}</code></td>
+              <td>{{ log.entity_type }} (ID: {{ log.entity_id or 'N/A' }})</td>
+              <td>{{ log.admin.username if log.admin else 'System' }}</td>
+              <td>{{ log.ip_address or 'Unknown' }}</td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center">No audit records logged yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Simple Tab Switcher
+  document.querySelectorAll('.admin-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      const targetId = tab.dataset.tab;
+      document.getElementById(targetId).classList.add('active');
+    });
+  });
+</script>
+{% endblock %}

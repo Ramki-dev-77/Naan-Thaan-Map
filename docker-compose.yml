@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # Campus Navigation Flask Application
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: campus_nav_web
+    restart: unless-stopped
+    ports:
+      - "5000:8080"
+    environment:
+      - APP_ENV=development
+      - FLASK_DEBUG=1
+      - PORT=8080
+      - DATABASE_URL=postgresql+psycopg://campus_user:campus_password@db:5432/campus_nav_db
+      - SECRET_KEY=local-dev-secret-key-campus-nav-2026
+      - RATELIMIT_STORAGE_URI=memory://
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "flask init-db &&
+             flask seed-demo &&
+             gunicorn --config gunicorn.conf.py run:app"
+
+  # PostgreSQL Database with PostGIS Extension
+  db:
+    image: postgis/postgis:15-3.3
+    container_name: campus_nav_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: campus_user
+      POSTGRES_PASSWORD: campus_password
+      POSTGRES_DB: campus_nav_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campus_user -d campus_nav_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+    driver: local

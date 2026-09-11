@@ -1,0 +1,66 @@
+/* ==============================================================================
+   Campus Navigation System — Responsive Breakpoints
+   Supports mobile browsers (iOS / Android) and wide desktop displays.
+   ============================================================================== */
+
+/* Mobile Bottom-Sheet Behavior (< 768px) */
+@media (max-width: 768px) {
+  :root {
+    --header-height: 56px;
+  }
+
+  .main-container {
+    flex-direction: column-reverse;
+  }
+
+  .sidebar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 55vh;
+    border-right: none;
+    border-top: 1px solid var(--border-color);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.12);
+    padding: 0.75rem 1rem 1.5rem 1rem;
+    z-index: 950;
+    transition: max-height 0.3s ease;
+  }
+
+  .mobile-drawer-handle {
+    display: block;
+    width: 36px;
+    height: 4px;
+    background-color: #cbd5e1;
+    border-radius: var(--radius-full);
+    margin: 0 auto 0.5rem auto;
+    cursor: grab;
+  }
+
+  .map-container {
+    height: calc(100vh - var(--header-height));
+  }
+
+  .map-floating-controls {
+    bottom: 60vh;
+    right: 1rem;
+  }
+
+  .brand-subtitle {
+    display: none;
+  }
+
+  .campus-select {
+    max-width: 150px;
+    font-size: 0.8rem;
+    padding: 0.35rem 0.6rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-drawer-handle {
+    display: none;
+  }
+}

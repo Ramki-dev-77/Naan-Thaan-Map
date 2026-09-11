@@ -1,0 +1,69 @@
+# ==============================================================================
+# Google Cloud Build CI/CD Pipeline
+# Automated Testing, Security Verification, Container Build & Cloud Run Deploy
+# ==============================================================================
+
+steps:
+  # 1. Run Automated Pytest Suite
+  - name: 'python:3.11-slim'
+    id: 'run-unit-tests'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        pip install --no-cache-dir -r requirements.txt
+        python -m pytest tests/ -v --tb=short
+
+  # 2. Build Container Image via Docker
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-docker-image'
+    args:
+      - 'build'
+      - '-t'
+      - '$_AR_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/campus-nav:$COMMIT_SHA'
+      - '-t'
+      - '$_AR_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/campus-nav:latest'
+      - '.'
+
+  # 3. Push Image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-to-registry'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '$_AR_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/campus-nav'
+
+  # 4. Deploy to Google Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-to-cloud-run'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '$_SERVICE_NAME'
+      - '--image=$_AR_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/campus-nav:$COMMIT_SHA'
+      - '--region=$_DEPLOY_REGION'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars=APP_ENV=production,LOG_LEVEL=INFO'
+      - '--set-secrets=DATABASE_URL=DATABASE_URL:latest,SECRET_KEY=SECRET_KEY:latest'
+      - '--add-cloudsql-instances=$PROJECT_ID:$_DEPLOY_REGION:$_CLOUDSQL_INSTANCE'
+      - '--cpu=1'
+      - '--memory=1Gi'
+      - '--min-instances=1'
+      - '--max-instances=20'
+      - '--port=8080'
+
+substitutions:
+  _SERVICE_NAME: 'campus-nav-service'
+  _DEPLOY_REGION: 'us-central1'
+  _AR_REGION: 'us-central1'
+  _AR_REPO: 'campus-nav-repo'
+  _CLOUDSQL_INSTANCE: 'campus-nav-db'
+
+images:
+  - '$_AR_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/campus-nav:$COMMIT_SHA'
+  - '$_AR_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/campus-nav:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

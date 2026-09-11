@@ -1,0 +1,13 @@
+Flask>=3.0.0
+gunicorn>=22.0.0
+SQLAlchemy>=2.0.25
+GeoAlchemy2>=0.14.3
+psycopg[binary]>=3.1.18
+Flask-Migrate>=4.0.5
+Flask-Limiter>=3.5.0
+Flask-WTF>=1.2.1
+python-dotenv>=1.0.1
+Werkzeug>=3.0.1
+shapely>=2.0.3
+pytest>=8.0.0
+pytest-cov>=4.1.0
