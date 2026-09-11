@@ -14,7 +14,9 @@ def index():
     """Main interactive map and navigation view."""
     campuses = Campus.query.filter_by(is_active=True).all()
     categories = Category.query.all()
-    default_campus = campuses[0] if campuses else None
+    # Prioritize SVCE as default campus if present
+    svce = next((c for c in campuses if "svce" in c.slug.lower()), None)
+    default_campus = svce if svce else (campuses[0] if campuses else None)
 
     return render_template(
         "index.html",

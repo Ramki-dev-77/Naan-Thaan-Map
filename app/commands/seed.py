@@ -377,22 +377,248 @@ def create_demo_data():
     return campus
 
 
+def create_svce_data():
+    """Generates authentic Sri Venkateswara College of Engineering (SVCE) campus data."""
+    # Ensure Categories
+    cat_map = {c.slug: c for c in Category.query.all()}
+    if not cat_map:
+        create_demo_data()
+        cat_map = {c.slug: c for c in Category.query.all()}
+
+    campus_name = "Sri Venkateswara College of Engineering (SVCE)"
+    campus_slug = "svce-sriperumbudur"
+
+    campus = Campus.query.filter_by(slug=campus_slug).first()
+    boundary_coords = [
+        [79.9680, 12.9845],
+        [79.9760, 12.9845],
+        [79.9760, 12.9905],
+        [79.9680, 12.9905],
+        [79.9680, 12.9845]
+    ]
+
+    if not campus:
+        campus = Campus(
+            name=campus_name,
+            slug=campus_slug,
+            description="Sri Venkateswara College of Engineering (SVCE Autonomous), Pennalur, Sriperumbudur, Tamil Nadu. Established in 1985.",
+            latitude=12.9871,
+            longitude=79.9719,
+            boundary={"type": "Polygon", "coordinates": [boundary_coords]},
+            is_active=True
+        )
+        db.session.add(campus)
+        db.session.flush()
+    else:
+        # Clear existing SVCE child records to reseed cleanly
+        Building.query.filter_by(campus_id=campus.id).delete()
+        Facility.query.filter_by(campus_id=campus.id).delete()
+        NavigationNode.query.filter_by(campus_id=campus.id).delete()
+        db.session.commit()
+
+    def make_box(lat, lng, dlat=0.00025, dlng=0.00035):
+        return {
+            "type": "Polygon",
+            "coordinates": [[
+                [lng - dlng, lat - dlat],
+                [lng + dlng, lat - dlat],
+                [lng + dlng, lat + dlat],
+                [lng - dlng, lat + dlat],
+                [lng - dlng, lat - dlat]
+            ]]
+        }
+
+    buildings_data = [
+        {"name": "Computer Science Block", "code": "CSB", "desc": "Department of Computer Science & Engineering, IT, AI & Data Science.", "lat": 12.98742, "lng": 79.97304, "ent_lat": 12.98742, "ent_lng": 79.97290, "floors": 3, "acc": True},
+        {"name": "Administration Block", "code": "ADM", "desc": "Principal Office, Dean Academics, Examination Cell, and Admissions.", "lat": 12.98698, "lng": 79.97204, "ent_lat": 12.98705, "ent_lng": 79.97204, "floors": 2, "acc": True},
+        {"name": "Electronics & Communication Block", "code": "ECE", "desc": "Department of ECE, Embedded Systems, Signal Processing, and VLSI Design.", "lat": 12.98743, "lng": 79.97237, "ent_lat": 12.98743, "ent_lng": 79.97225, "floors": 3, "acc": True},
+        {"name": "Mechanical Engineering Block", "code": "MEC", "desc": "Department of Mechanical Engineering, Thermal Engineering, and Dynamics Labs.", "lat": 12.98779, "lng": 79.97274, "ent_lat": 12.98770, "ent_lng": 79.97274, "floors": 3, "acc": True},
+        {"name": "Chemical Engineering Block", "code": "CHE", "desc": "Department of Chemical Engineering, Mass Transfer, and Process Labs.", "lat": 12.98781, "lng": 79.97220, "ent_lat": 12.98770, "ent_lng": 79.97220, "floors": 2, "acc": True},
+        {"name": "Applied Science & Humanities", "code": "ASH", "desc": "Physics, Chemistry, Mathematics Departments, and First Year Lecture Halls.", "lat": 12.98712, "lng": 79.97268, "ent_lat": 12.98712, "ent_lng": 79.97255, "floors": 3, "acc": True},
+        {"name": "Central Library", "code": "LIB", "desc": "Dr. A.P.J. Abdul Kalam Central Library with digital archives and reference stacks.", "lat": 12.98705, "lng": 79.97240, "ent_lat": 12.98705, "ent_lng": 79.97235, "floors": 2, "acc": True},
+        {"name": "Research & Development Center", "code": "RND", "desc": "Innovation Hub, Patent Cell, and Interdisciplinary Research Laboratories.", "lat": 12.98886, "lng": 79.97112, "ent_lat": 12.98875, "ent_lng": 79.97112, "floors": 2, "acc": True},
+    ]
+
+    building_map = {}
+    for b in buildings_data:
+        b_obj = Building(
+            campus_id=campus.id,
+            name=b["name"],
+            code=b["code"],
+            description=b["desc"],
+            latitude=b["lat"],
+            longitude=b["lng"],
+            entrance_latitude=b["ent_lat"],
+            entrance_longitude=b["ent_lng"],
+            footprint=make_box(b["lat"], b["lng"]),
+            floors=b["floors"],
+            accessible=b["acc"]
+        )
+        db.session.add(b_obj)
+        db.session.flush()
+        building_map[b["code"]] = b_obj
+
+    # Navigation Nodes on SVCE Walkway Graph
+    nodes_data = [
+        {"key": "SVCE_GATE", "lat": 12.98550, "lng": 79.97180, "type": "ENTRANCE", "label": "SVCE Main Gate (NH48)", "floor": 0},
+        {"key": "SVCE_AVENUE_1", "lat": 12.98620, "lng": 79.97190, "type": "JUNCTION", "label": "Main Entrance Avenue", "floor": 0},
+        {"key": "SVCE_TEMPLE_JUNC", "lat": 12.98700, "lng": 79.97195, "type": "JUNCTION", "label": "SVCE Temple Circle", "floor": 0},
+        {"key": "SVCE_CENTRAL_QUAD", "lat": 12.98730, "lng": 79.97250, "type": "JUNCTION", "label": "Academic Quadrangle Fountain", "floor": 0},
+        {"key": "SVCE_NORTH_PATH", "lat": 12.98770, "lng": 79.97250, "type": "JUNCTION", "label": "Mechanical & Chemical Junction", "floor": 0},
+        {"key": "SVCE_WEST_HOSTEL_JUNC", "lat": 12.98750, "lng": 79.97080, "type": "JUNCTION", "label": "Hostel Road Junction", "floor": 0},
+        
+        # Entrances
+        {"key": "ENT_ADM", "lat": 12.98705, "lng": 79.97204, "type": "ENTRANCE", "label": "Admin Block Entrance", "bld": "ADM", "floor": 0},
+        {"key": "ENT_LIB", "lat": 12.98705, "lng": 79.97235, "type": "ENTRANCE", "label": "Central Library Entrance", "bld": "LIB", "floor": 0},
+        {"key": "ENT_CSB", "lat": 12.98742, "lng": 79.97290, "type": "ENTRANCE", "label": "Computer Science Block Entrance", "bld": "CSB", "floor": 0},
+        {"key": "ENT_ECE", "lat": 12.98743, "lng": 79.97225, "type": "ENTRANCE", "label": "ECE Block Entrance", "bld": "ECE", "floor": 0},
+        {"key": "ENT_MEC", "lat": 12.98770, "lng": 79.97274, "type": "ENTRANCE", "label": "Mechanical Block Entrance", "bld": "MEC", "floor": 0},
+        {"key": "ENT_CHE", "lat": 12.98770, "lng": 79.97220, "type": "ENTRANCE", "label": "Chemical Block Entrance", "bld": "CHE", "floor": 0},
+        {"key": "ENT_ASH", "lat": 12.98712, "lng": 79.97255, "type": "ENTRANCE", "label": "Applied Science Entrance", "bld": "ASH", "floor": 0},
+
+        # CS Block Inside
+        {"key": "CS_FOYER", "lat": 12.98742, "lng": 79.97300, "type": "CORRIDOR", "label": "CSE Foyer", "bld": "CSB", "floor": 0},
+        {"key": "CS_LAB1_DOOR", "lat": 12.98744, "lng": 79.97305, "type": "DOOR", "label": "Door CS-LAB-1 (AI Lab)", "bld": "CSB", "floor": 1},
+        {"key": "CS_LAB2_DOOR", "lat": 12.98740, "lng": 79.97305, "type": "DOOR", "label": "Door CS-LAB-2 (Cloud Lab)", "bld": "CSB", "floor": 2},
+    ]
+
+    node_map = {}
+    for nd in nodes_data:
+        b_id = building_map[nd["bld"]].id if "bld" in nd else None
+        node = NavigationNode(
+            campus_id=campus.id,
+            building_id=b_id,
+            node_type=nd["type"],
+            label=nd["label"],
+            floor=nd["floor"],
+            latitude=nd["lat"],
+            longitude=nd["lng"],
+            is_active=True
+        )
+        db.session.add(node)
+        db.session.flush()
+        node_map[nd["key"]] = node
+
+    # Walkway Edges
+    edges_spec = [
+        ("SVCE_GATE", "SVCE_AVENUE_1", True, False, "PAVED_WALKWAY"),
+        ("SVCE_AVENUE_1", "SVCE_TEMPLE_JUNC", True, False, "PAVED_WALKWAY"),
+        ("SVCE_TEMPLE_JUNC", "ENT_ADM", True, False, "PAVED_WALKWAY"),
+        ("SVCE_TEMPLE_JUNC", "SVCE_CENTRAL_QUAD", True, False, "PAVED_WALKWAY"),
+        ("SVCE_TEMPLE_JUNC", "SVCE_WEST_HOSTEL_JUNC", True, False, "PAVED_WALKWAY"),
+        ("SVCE_CENTRAL_QUAD", "ENT_LIB", True, False, "PAVED_WALKWAY"),
+        ("SVCE_CENTRAL_QUAD", "ENT_ASH", True, False, "PAVED_WALKWAY"),
+        ("SVCE_CENTRAL_QUAD", "ENT_ECE", True, False, "PAVED_WALKWAY"),
+        ("SVCE_CENTRAL_QUAD", "ENT_CSB", True, False, "PAVED_WALKWAY"),
+        ("SVCE_CENTRAL_QUAD", "SVCE_NORTH_PATH", True, False, "PAVED_WALKWAY"),
+        ("SVCE_NORTH_PATH", "ENT_MEC", True, False, "PAVED_WALKWAY"),
+        ("SVCE_NORTH_PATH", "ENT_CHE", True, False, "PAVED_WALKWAY"),
+        ("ENT_CSB", "CS_FOYER", True, False, "CORRIDOR"),
+        ("CS_FOYER", "CS_LAB1_DOOR", True, False, "CORRIDOR"),
+        ("CS_LAB1_DOOR", "CS_LAB2_DOOR", True, False, "CORRIDOR"),
+    ]
+
+    for src_k, dst_k, is_acc, has_stairs, ptype in edges_spec:
+        src_node = node_map[src_k]
+        dst_node = node_map[dst_k]
+        dist = haversine_distance(src_node.latitude, src_node.longitude, dst_node.latitude, dst_node.longitude)
+        edge = NavigationEdge(
+            source_node_id=src_node.id,
+            destination_node_id=dst_node.id,
+            distance=max(dist, 3.0),
+            accessible=is_acc,
+            stairs=has_stairs,
+            path_type=ptype,
+            is_bidirectional=True
+        )
+        db.session.add(edge)
+
+    # Rooms at SVCE
+    rooms_data = [
+        {"bld": "CSB", "num": "CS-LAB-1", "name": "Artificial Intelligence & Deep Learning Lab", "floor": 1, "dept": "Computer Science", "node": "CS_LAB1_DOOR"},
+        {"bld": "CSB", "num": "CS-LAB-2", "name": "Cloud Computing & Networks Lab", "floor": 2, "dept": "Computer Science", "node": "CS_LAB2_DOOR"},
+        {"bld": "CSB", "num": "CS-201", "name": "CSE Smart Interactive Classroom", "floor": 1, "dept": "Computer Science", "node": "CS_FOYER"},
+        {"bld": "ECE", "num": "ECE-101", "name": "VLSI Design & Embedded Systems Lab", "floor": 1, "dept": "ECE", "node": "ENT_ECE"},
+        {"bld": "MEC", "num": "ME-102", "name": "CAD / CAM Modeling Center", "floor": 0, "dept": "Mechanical", "node": "ENT_MEC"},
+        {"bld": "ADM", "num": "ADM-01", "name": "Principal & Secretary Office", "floor": 0, "dept": "Administration", "node": "ENT_ADM"},
+        {"bld": "LIB", "num": "LIB-REF", "name": "Digital Reference & E-Library", "floor": 0, "dept": "Library", "node": "ENT_LIB"},
+    ]
+
+    for r in rooms_data:
+        b_obj = building_map[r["bld"]]
+        door_node = node_map.get(r.get("node"))
+        room = Room(
+            building_id=b_obj.id,
+            room_number=r["num"],
+            name=r["name"],
+            floor=r["floor"],
+            department=r["dept"],
+            latitude=door_node.latitude if door_node else b_obj.latitude,
+            longitude=door_node.longitude if door_node else b_obj.longitude,
+            node_id=door_node.id if door_node else None,
+            description=f"{r['name']} at SVCE {b_obj.name}."
+        )
+        db.session.add(room)
+
+    # Facilities at SVCE
+    facilities_data = [
+        {"name": "SVCE Main Entrance Gate", "cat": "admin", "lat": 12.98550, "lng": 79.97180, "bld": None, "desc": "Security Gate on NH48 Chennai-Bengaluru Highway.", "hours": "24 Hours"},
+        {"name": "Sri Venkateswara Temple", "cat": "admin", "lat": 12.98726, "lng": 79.97197, "bld": None, "desc": "Campus Sri Venkateswara Swamy Temple.", "hours": "06:00 - 18:00"},
+        {"name": "SVCE Central Canteen & Cafeteria", "cat": "dining", "lat": 12.98648, "lng": 79.97230, "bld": None, "desc": "Main Student Canteen, Coffee & Snacks Counter.", "hours": "08:00 - 19:30"},
+        {"name": "Student Parking & Two-Wheeler Stand", "cat": "parking", "lat": 12.98580, "lng": 79.97240, "bld": None, "desc": "Designated parking area for students and visitors.", "hours": "07:00 - 20:00"},
+        {"name": "Campus Medical Center / Dispensary", "cat": "medical", "lat": 12.98670, "lng": 79.97120, "bld": None, "desc": "Campus Physician, first aid, and ambulance emergency response.", "hours": "08:00 - 18:00"},
+        {"name": "Dr. A.P.J. Abdul Kalam Central Library", "cat": "library", "lat": 12.98705, "lng": 79.97240, "bld": "LIB", "desc": "Over 100,000 volumes, international journals, and quiet reading halls.", "hours": "08:00 - 20:00"},
+        {"name": "Mens Hostel Complex & Mess", "cat": "admin", "lat": 12.98880, "lng": 79.97020, "bld": None, "desc": "Blocks 1-5 Mens Residence and Dining Hall.", "hours": "Residents"},
+        {"name": "Ladies Hostel Complex & Mess", "cat": "admin", "lat": 12.98720, "lng": 79.96930, "bld": None, "desc": "Ladies Residence and Dining Hall.", "hours": "Residents"},
+    ]
+
+    for f in facilities_data:
+        cat_obj = cat_map.get(f["cat"]) or cat_map["academic"]
+        b_obj = building_map.get(f["bld"]) if f["bld"] else None
+        facility = Facility(
+            campus_id=campus.id,
+            building_id=b_obj.id if b_obj else None,
+            category_id=cat_obj.id,
+            name=f["name"],
+            description=f["desc"],
+            latitude=f["lat"],
+            longitude=f["lng"],
+            accessible=True,
+            opening_hours=f["hours"]
+        )
+        db.session.add(facility)
+
+    db.session.commit()
+    return campus
+
+
 def register_commands(app):
     """Register CLI commands with Flask application."""
 
     @app.cli.command("seed-demo")
     @click.option("--reset", is_flag=True, help="Drop all existing tables before seeding.")
     def seed_demo_command(reset):
-        """Seed the database with realistic Demo Engineering Campus data."""
+        """Seed database with Demo Engineering Campus and SVCE."""
         if reset:
             click.echo("Dropping and recreating all database tables...")
             db.drop_all()
         db.create_all()
 
-        click.echo("Seeding realistic Demo Engineering Campus dataset...")
-        campus = create_demo_data()
-        click.echo(f"Successfully seeded: {campus.name} (ID: {campus.id}, Slug: {campus.slug})")
+        click.echo("Seeding Demo Engineering Campus...")
+        c1 = create_demo_data()
+        click.echo(f"Seeded: {c1.name}")
+
+        click.echo("Seeding Sri Venkateswara College of Engineering (SVCE)...")
+        c2 = create_svce_data()
+        click.echo(f"Seeded: {c2.name} at Pennalur, Sriperumbudur ({c2.latitude}, {c2.longitude})")
         click.echo("Default Admin: admin / CampusAdmin2026!")
+
+    @app.cli.command("seed-svce")
+    def seed_svce_command():
+        """Seed or update Sri Venkateswara College of Engineering (SVCE) campus."""
+        db.create_all()
+        campus = create_svce_data()
+        click.echo(f"Successfully seeded: {campus.name} (Lat: {campus.latitude}, Lon: {campus.longitude})")
 
     @app.cli.command("init-db")
     def init_db_command():
