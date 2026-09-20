@@ -62,7 +62,7 @@ class CampusPedestrianRoutingService(RoutingProviderInterface):
     AVERAGE_WALKING_SPEED_MPS = 1.3  # 1.3 meters per second (~4.7 km/h)
 
     @classmethod
-    def snap_to_nearest_node(cls, campus_id: int, lat: float, lng: float, max_radius_meters: float = 300.0) -> NavigationNode:
+    def snap_to_nearest_node(cls, campus_id: int, lat: float, lng: float, max_radius_meters: float = 800.0) -> NavigationNode:
         """Find the physically closest navigation node on the campus network."""
         nodes = NavigationNode.query.filter_by(campus_id=campus_id, is_active=True).all()
         if not nodes:
@@ -87,10 +87,11 @@ class CampusPedestrianRoutingService(RoutingProviderInterface):
         return closest_node
 
     @classmethod
-    def find_optimal_path(cls, campus_id: int, start_node_id: int, target_node_id: int, accessible_only: bool = False) -> Tuple[List[NavigationNode], float]:
+    def find_optimal_path(cls, campus_id: int, start_node_id: int, target_node_id: int, accessible_only: bool = False, mode: str = "fastest") -> Tuple[List[NavigationNode], float]:
         """
         Executes A* search from start_node_id to target_node_id.
-        Returns (node_sequence, total_distance_meters).
+        Supports modes: 'fastest', 'accessible', 'main_avenue'.
+        Returns (node_sequence, total_physical_distance_meters).
         """
         if start_node_id == target_node_id:
             node = db.session.get(NavigationNode, start_node_id)
@@ -109,16 +110,31 @@ class CampusPedestrianRoutingService(RoutingProviderInterface):
 
         adj: Dict[int, List[Tuple[int, float, bool, bool, str]]] = {nid: [] for nid in nodes_dict}
 
+        is_accessible_mode = (mode == "accessible" or accessible_only)
+
         for edge in edges:
             if edge.source_node_id in adj and edge.destination_node_id in nodes_dict:
                 # If accessible routing is requested, discard stairs completely
-                if accessible_only and (edge.stairs or not edge.accessible):
+                if is_accessible_mode and (edge.stairs or not edge.accessible):
                     continue
                 
-                # Weight calculation: stairs penalty if not in accessible mode
+                # Weight calculation depending on selected routing mode
                 weight = edge.distance
-                if edge.stairs:
-                    weight *= 1.8  # Pedestrian reluctance to climb stairs
+                if mode == "fastest":
+                    if edge.stairs:
+                        weight *= 1.2  # Slight pedestrian cost for stairs, but available for shortcuts
+                elif mode == "main_avenue":
+                    if edge.stairs:
+                        weight *= 12.0  # Strongly avoid stairs
+                    if edge.path_type == "MAIN_AVENUE":
+                        weight *= 0.65  # High priority for wide, tree-lined avenues
+                    elif edge.path_type == "PAVED_WALKWAY":
+                        weight *= 0.95
+                    else:
+                        weight *= 2.2  # Avoid narrow side-paths or stairs
+                elif is_accessible_mode:
+                    if edge.path_type == "RAMP":
+                        weight *= 0.9  # Prefer well-built ramps
 
                 adj[edge.source_node_id].append((edge.destination_node_id, weight, edge.accessible, edge.stairs, edge.path_type))
 
@@ -149,7 +165,13 @@ class CampusPedestrianRoutingService(RoutingProviderInterface):
                     curr = came_from[curr]
                 path.append(nodes_dict[start_node_id])
                 path.reverse()
-                return path, g_scores[target_node_id]
+
+                # Calculate true physical distance along path in meters
+                physical_dist = 0.0
+                for i in range(len(path) - 1):
+                    physical_dist += haversine_distance(path[i].latitude, path[i].longitude,
+                                                        path[i + 1].latitude, path[i + 1].longitude)
+                return path, max(physical_dist, 1.0)
 
             if current_id in visited:
                 continue
@@ -165,7 +187,7 @@ class CampusPedestrianRoutingService(RoutingProviderInterface):
                     heapq.heappush(open_set, (tentative_g + h, tentative_g, neighbor_id))
 
         # If we reached here, no path was found
-        if accessible_only:
+        if is_accessible_mode:
             raise AppError(
                 "No step-free accessible route found between these locations. An obstacle (stairs) exists on all paths.",
                 code="NO_ACCESSIBLE_ROUTE",
@@ -240,14 +262,19 @@ class RoutingService:
     @classmethod
     def calculate_campus_route(cls, campus_id: int, origin_coords: Dict[str, float], destination_info: Dict[str, Any], accessible: bool = False) -> Dict[str, Any]:
         """
-        Coordinates origin snapping, target node identification, A* pathfinding,
-        and response formatting.
+        Coordinates origin snapping, target node identification, A* multi-path calculation,
+        and response formatting with alternative route choices.
         """
         # 1. Snap origin to closest campus node
+        orig_lat = origin_coords.get("lat")
+        orig_lng = origin_coords.get("lng")
+        dest_lat = None
+        dest_lng = None
+
         start_node = cls.pedestrian_service.snap_to_nearest_node(
             campus_id=campus_id,
-            lat=origin_coords["lat"],
-            lng=origin_coords["lng"]
+            lat=orig_lat,
+            lng=orig_lng
         )
 
         # 2. Resolve target node
@@ -261,6 +288,8 @@ class RoutingService:
             if not room:
                 raise AppError("Destination room not found.", code="DESTINATION_NOT_FOUND", status_code=404)
             destination_label = f"{room.room_number} — {room.name}"
+            dest_lat = room.latitude or (room.building.latitude if room.building else None)
+            dest_lng = room.longitude or (room.building.longitude if room.building else None)
             # If room has specific door node, use it; otherwise use building entrance
             if room.node_id:
                 target_node = db.session.get(NavigationNode, room.node_id)
@@ -278,12 +307,14 @@ class RoutingService:
             if not building:
                 raise AppError("Destination building not found.", code="DESTINATION_NOT_FOUND", status_code=404)
             destination_label = building.name
+            dest_lat = building.entrance_latitude or building.latitude
+            dest_lng = building.entrance_longitude or building.longitude
             target_node = NavigationNode.query.filter_by(building_id=building.id, node_type="ENTRANCE").first()
             if not target_node:
                 target_node = cls.pedestrian_service.snap_to_nearest_node(
                     campus_id=campus_id,
-                    lat=building.entrance_latitude or building.latitude,
-                    lng=building.entrance_longitude or building.longitude
+                    lat=dest_lat,
+                    lng=dest_lng
                 )
 
         elif dest_type == "facility":
@@ -291,6 +322,8 @@ class RoutingService:
             if not facility:
                 raise AppError("Destination facility not found.", code="DESTINATION_NOT_FOUND", status_code=404)
             destination_label = facility.name
+            dest_lat = facility.latitude
+            dest_lng = facility.longitude
             target_node = cls.pedestrian_service.snap_to_nearest_node(
                 campus_id=campus_id,
                 lat=facility.latitude,
@@ -301,55 +334,175 @@ class RoutingService:
             target_node = db.session.get(NavigationNode, dest_id)
             if target_node:
                 destination_label = target_node.label or "Campus Point"
+                dest_lat = target_node.latitude
+                dest_lng = target_node.longitude
 
         elif "lat" in destination_info and "lng" in destination_info:
+            dest_lat = float(destination_info["lat"])
+            dest_lng = float(destination_info["lng"])
             target_node = cls.pedestrian_service.snap_to_nearest_node(
                 campus_id=campus_id,
-                lat=destination_info["lat"],
-                lng=destination_info["lng"]
+                lat=dest_lat,
+                lng=dest_lng
             )
             destination_label = "Selected Map Location"
 
         if not target_node:
             raise AppError("Unable to resolve destination to a walkable campus node.", code="UNRESOLVED_DESTINATION", status_code=400)
 
-        # 3. Compute A* Path
-        path, total_distance = cls.pedestrian_service.find_optimal_path(
-            campus_id=campus_id,
-            start_node_id=start_node.id,
-            target_node_id=target_node.id,
-            accessible_only=accessible
-        )
+        if dest_lat is None:
+            dest_lat = target_node.latitude
+            dest_lng = target_node.longitude
 
-        # 4. Generate GeoJSON coordinates [[lng, lat], ...]
-        geojson_coords = [[node.longitude, node.latitude] for node in path]
+        # 3. Calculate Multiple Route Candidates
+        route_options_spec = [
+            {
+                "id": "fastest",
+                "name": "Fastest Route",
+                "badge": "Fastest",
+                "mode": "fastest",
+                "acc_only": False,
+                "description": "Shortest walking path via direct walkways & roads",
+            },
+            {
+                "id": "accessible",
+                "name": "Step-Free Accessible",
+                "badge": "Step-Free",
+                "mode": "accessible",
+                "acc_only": True,
+                "description": "Smooth ramps & elevators; avoids all stairs",
+            },
+            {
+                "id": "main_avenue",
+                "name": "Main Avenue / Shaded",
+                "badge": "Wide Boulevard",
+                "mode": "main_avenue",
+                "acc_only": False,
+                "description": "Wide paved central avenues & illuminated plazas",
+            },
+        ]
 
-        # 5. Turn-by-turn guidance
-        steps = cls.pedestrian_service.generate_turn_instructions(path, destination_label)
+        computed_routes = []
+        fastest_distance = 0.0
 
-        # 6. Estimate walking duration (seconds)
-        walking_time_sec = int(total_distance / cls.pedestrian_service.AVERAGE_WALKING_SPEED_MPS)
-        # Add buffer for floor transitions (e.g. elevator/stairs)
-        floor_transitions = sum(1 for s in steps if s["node_type"] in ["STAIRS", "ELEVATOR"])
-        walking_time_sec += floor_transitions * 25
+        for spec in route_options_spec:
+            try:
+                path, total_dist = cls.pedestrian_service.find_optimal_path(
+                    campus_id=campus_id,
+                    start_node_id=start_node.id,
+                    target_node_id=target_node.id,
+                    accessible_only=spec["acc_only"],
+                    mode=spec["mode"],
+                )
+            except AppError:
+                continue
+
+            orig_extra_dist = haversine_distance(orig_lat, orig_lng, path[0].latitude, path[0].longitude) if (orig_lat is not None and orig_lng is not None) else 0.0
+            dest_extra_dist = haversine_distance(dest_lat, dest_lng, path[-1].latitude, path[-1].longitude) if (dest_lat is not None and dest_lng is not None) else 0.0
+
+            geojson_coords = []
+            if orig_lat is not None and orig_lng is not None and orig_extra_dist > 1.5:
+                geojson_coords.append([round(orig_lng, 6), round(orig_lat, 6)])
+            for node in path:
+                geojson_coords.append([round(node.longitude, 6), round(node.latitude, 6)])
+            if dest_lat is not None and dest_lng is not None and dest_extra_dist > 1.5:
+                geojson_coords.append([round(dest_lng, 6), round(dest_lat, 6)])
+
+            # If start_node == target_node and points are distinct
+            effective_dist = total_dist
+            if start_node.id == target_node.id:
+                direct_dist = haversine_distance(orig_lat, orig_lng, dest_lat, dest_lng) if (orig_lat is not None and dest_lat is not None) else 0.0
+                effective_dist = direct_dist
+                if direct_dist > 3.0:
+                    steps = [{
+                        "instruction": f"Walk towards {destination_label}",
+                        "distance_meters": round(direct_dist, 1),
+                        "node_type": "WALKWAY",
+                        "floor": start_node.floor
+                    }]
+                else:
+                    steps = [{
+                        "instruction": f"You are already at {destination_label}.",
+                        "distance_meters": 0,
+                        "node_type": "DOOR",
+                        "floor": start_node.floor
+                    }]
+            else:
+                effective_dist = total_dist + orig_extra_dist + dest_extra_dist
+                steps = cls.pedestrian_service.generate_turn_instructions(path, destination_label)
+
+            walking_time_sec = int(effective_dist / cls.pedestrian_service.AVERAGE_WALKING_SPEED_MPS)
+            floor_transitions = sum(1 for s in steps if s.get("node_type") in ["STAIRS", "ELEVATOR"])
+            walking_time_sec += floor_transitions * 25
+
+            has_stairs = any(node.node_type == "STAIRS" for node in path)
+            is_acc = not has_stairs
+
+            if spec["id"] == "fastest":
+                fastest_distance = effective_dist
+
+            computed_routes.append({
+                "id": spec["id"],
+                "name": spec["name"],
+                "badge": spec["badge"],
+                "description": spec["description"],
+                "mode": spec["mode"],
+                "difference": "",
+                "total_distance_meters": round(effective_dist, 1),
+                "estimated_duration_seconds": max(walking_time_sec, 30),
+                "has_stairs": has_stairs,
+                "is_accessible": is_acc,
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": geojson_coords,
+                },
+                "steps": steps,
+            })
+
+        if not computed_routes:
+            raise AppError("No connecting walkable path found between origin and destination.", code="ROUTE_NOT_FOUND", status_code=404)
+
+        # Set differences compared to fastest route
+        for r in computed_routes:
+            if r["id"] == "fastest":
+                r["difference"] = "Direct pedestrian route"
+            elif r["id"] == "accessible":
+                diff = round(r["total_distance_meters"] - fastest_distance)
+                if diff > 3:
+                    r["difference"] = f"+{diff}m longer • Step-free (0 stairs), ramp accessible"
+                else:
+                    r["difference"] = "Step-free • Ramp & elevator accessible"
+            elif r["id"] == "main_avenue":
+                diff = round(r["total_distance_meters"] - fastest_distance)
+                if diff > 3:
+                    r["difference"] = f"+{diff}m longer • Tree-lined wide avenue"
+                else:
+                    r["difference"] = "Wide avenue & central plaza promenade"
+
+        # Determine primary selected route
+        primary_route = None
+        if accessible:
+            primary_route = next((r for r in computed_routes if r["id"] == "accessible"), computed_routes[0])
+        else:
+            primary_route = computed_routes[0]
 
         return {
             "origin": {
                 "node_id": start_node.id,
                 "label": start_node.label or "Walkway Point",
-                "coordinates": {"latitude": start_node.latitude, "longitude": start_node.longitude}
+                "coordinates": {"latitude": orig_lat or start_node.latitude, "longitude": orig_lng or start_node.longitude}
             },
             "destination": {
                 "node_id": target_node.id,
                 "label": destination_label,
-                "coordinates": {"latitude": target_node.latitude, "longitude": target_node.longitude}
+                "coordinates": {"latitude": dest_lat, "longitude": dest_lng}
             },
-            "total_distance_meters": round(total_distance, 1),
-            "estimated_duration_seconds": max(walking_time_sec, 30),
-            "accessible": accessible,
-            "geometry": {
-                "type": "LineString",
-                "coordinates": geojson_coords,
-            },
-            "steps": steps,
+            "active_route_id": primary_route["id"],
+            "total_distance_meters": primary_route["total_distance_meters"],
+            "estimated_duration_seconds": primary_route["estimated_duration_seconds"],
+            "accessible": primary_route["is_accessible"],
+            "geometry": primary_route["geometry"],
+            "steps": primary_route["steps"],
+            "routes": computed_routes,
         }
+

@@ -31,14 +31,15 @@ class SearchService:
     def search(cls, query: str, campus_id: int = None, category_slug: str = None, limit: int = 15):
         """Execute multi-entity search and return ranked results."""
         clean_query = query.strip()
-        if not clean_query or len(clean_query) < 1:
+        is_wildcard = (not clean_query or clean_query == "*")
+        if not clean_query and not category_slug:
             return []
 
         q_lower = clean_query.lower()
         results = []
 
         # 1. Search Buildings (Only if category is empty or 'academic')
-        if not category_slug or category_slug.lower() == "academic":
+        if not category_slug or category_slug.lower() in ["academic", "all"]:
             b_query = Building.query
             if campus_id:
                 b_query = b_query.filter(Building.campus_id == campus_id)
@@ -47,8 +48,9 @@ class SearchService:
             for b in buildings:
                 score = 0.0
                 matched_field = "name"
-                # Exact code match (e.g., 'CSB', 'ADM')
-                if b.code and q_lower == b.code.lower():
+                if is_wildcard:
+                    score = 1.0
+                elif b.code and q_lower == b.code.lower():
                     score = 1.0
                     matched_field = "code"
                 elif b.code and b.code.lower().startswith(q_lower):
@@ -84,7 +86,7 @@ class SearchService:
                     })
 
         # 2. Search Rooms (Only if category is empty or 'academic')
-        if not category_slug or category_slug.lower() == "academic":
+        if not category_slug or category_slug.lower() in ["academic", "all"]:
             r_query = Room.query.join(Building)
             if campus_id:
                 r_query = r_query.filter(Building.campus_id == campus_id)
@@ -92,8 +94,9 @@ class SearchService:
 
             for r in rooms:
                 score = 0.0
-                # Room number exact match (e.g. 'CS-101', '204')
-                if r.room_number and q_lower == r.room_number.lower():
+                if is_wildcard:
+                    score = 0.88
+                elif r.room_number and q_lower == r.room_number.lower():
                     score = 1.0
                 elif r.room_number and r.room_number.lower().startswith(q_lower):
                     score = 0.95
@@ -131,15 +134,18 @@ class SearchService:
         f_query = Facility.query
         if campus_id:
             f_query = f_query.filter(Facility.campus_id == campus_id)
-        if category_slug:
+        if category_slug and category_slug.lower() != "all":
             f_query = f_query.join(Category).filter(Category.slug == category_slug)
         facilities = f_query.all()
 
         for f in facilities:
-            score = cls._fuzzy_score(q_lower, f.name)
-            cat_score = cls._fuzzy_score(q_lower, f.category.name if f.category else "") * 0.85
-            desc_score = cls._fuzzy_score(q_lower, f.description or "") * 0.6
-            final_score = max(score, cat_score, desc_score)
+            if is_wildcard:
+                final_score = 1.0
+            else:
+                score = cls._fuzzy_score(q_lower, f.name)
+                cat_score = cls._fuzzy_score(q_lower, f.category.name if f.category else "") * 0.85
+                desc_score = cls._fuzzy_score(q_lower, f.description or "") * 0.6
+                final_score = max(score, cat_score, desc_score)
 
             if final_score > 0.45:
                 results.append({

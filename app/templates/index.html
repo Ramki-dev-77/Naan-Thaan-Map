@@ -90,12 +90,20 @@
           <button class="pill" data-category="library">Library</button>
           <button class="pill" data-category="medical">Medical</button>
           <button class="pill" data-category="parking">Parking</button>
-          <button class="pill" data-category="restroom">Restroom</button>
         </div>
       </section>
 
+      <!-- Quick Select Campus Labels Section (Visible when search input is empty) -->
+      <section class="quick-labels-section" id="quickLabelsSection" aria-label="Campus Locations Directory">
+        <div class="quick-labels-header">
+          <span class="quick-labels-title">Campus Places &amp; Labels</span>
+          <span class="quick-labels-count" id="quickLabelsCount">Loading...</span>
+        </div>
+        <div class="quick-labels-container" id="quickLabelsContainer" role="listbox" aria-label="Select Campus Place"></div>
+      </section>
+
       <!-- Search Results Dropdown List -->
-      <div id="searchResultsList" class="search-results-list" role="listbox" aria-label="Search suggestions"></div>
+      <div id="searchResultsList" class="search-results-list hidden" role="listbox" aria-label="Search suggestions"></div>
 
       <!-- Selected Destination Card -->
       <section id="destinationCard" class="card destination-card hidden" aria-label="Selected Destination">
@@ -166,6 +174,17 @@
             <div class="toggle-label-group">
               <span class="toggle-title">Wheelchair / Accessible Route</span>
               <span class="toggle-hint">Bypasses stairs; prioritizes ramps and elevators</span>
+            </div>
+          </div>
+
+          <!-- Multiple Route Choices Selection -->
+          <div class="route-choices-section" id="routeChoicesSection">
+            <div class="route-choices-title-row">
+              <span class="route-choices-title">Route Choices</span>
+              <span class="route-choices-hint">Select a route to view & compare</span>
+            </div>
+            <div id="routeCardsContainer" class="route-cards-container">
+              <!-- Dynamically populated with Fastest, Step-Free Accessible, Main Avenue options -->
             </div>
           </div>
 

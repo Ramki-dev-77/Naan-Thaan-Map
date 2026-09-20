@@ -101,3 +101,38 @@ def test_full_campus_route_calculation(app_ctx):
     assert len(route["geometry"]["coordinates"]) >= 3
     assert len(route["steps"]) >= 2
     assert "Artificial Intelligence" in route["destination"]["label"]
+    assert "routes" in route
+    assert len(route["routes"]) >= 1
+
+
+def test_multi_route_options_and_differences(app_ctx):
+    """Verify that multiple route alternatives are computed with diff explanations."""
+    campus = Campus.query.filter_by(slug="svce-sriperumbudur").first()
+    if not campus:
+        campus = Campus.query.filter_by(slug="demo-engineering-campus").first()
+
+    room = Room.query.filter_by(room_number="CS-LAB-1").first()
+    assert room is not None
+
+    origin_coords = {"lat": campus.latitude - 0.001, "lng": campus.longitude}
+    dest_info = {"type": "room", "id": room.id}
+
+    result = RoutingService.calculate_campus_route(campus.id, origin_coords, dest_info, accessible=False)
+
+    assert "routes" in result
+    routes = result["routes"]
+    assert len(routes) >= 2
+
+    route_ids = [r["id"] for r in routes]
+    assert "fastest" in route_ids
+
+    fastest = next(r for r in routes if r["id"] == "fastest")
+    assert fastest["total_distance_meters"] > 0
+    assert len(fastest["difference"]) > 0
+
+    # If accessible route exists, verify difference exists
+    accessible_route = next((r for r in routes if r["id"] == "accessible"), None)
+    if accessible_route:
+        assert accessible_route["is_accessible"] is True
+        assert len(accessible_route["difference"]) > 0
+

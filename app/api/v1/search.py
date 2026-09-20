@@ -22,9 +22,9 @@ def search():
     query_str = request.args.get("q", "").strip()
     campus_id = request.args.get("campus_id", type=int)
     category_slug = request.args.get("category", "").strip() or None
-    limit = request.args.get("limit", 15, type=int)
+    limit = request.args.get("limit", 30, type=int)
 
-    if not query_str:
+    if not query_str and not category_slug:
         return jsonify({
             "status": "success",
             "data": [],
@@ -32,10 +32,10 @@ def search():
         }), 200
 
     results = SearchService.search(
-        query=query_str,
+        query=query_str or "*",
         campus_id=campus_id,
         category_slug=category_slug,
-        limit=min(limit, 50)
+        limit=min(limit, 100)
     )
 
     return jsonify({

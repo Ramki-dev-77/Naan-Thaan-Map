@@ -35,7 +35,8 @@ def calculate_route():
     return jsonify({
         "status": "success",
         "data": {
-            "route": route_data
+            "route": route_data,
+            "routes": route_data.get("routes", [route_data]),
         },
         "meta": {"request_id": getattr(g, "request_id", "")}
     }), 200

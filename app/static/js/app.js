@@ -34,16 +34,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     },
   });
 
+  navCtrl.onDeselectCallback = () => {
+    searchCtrl.setSelectedLabel(null, null);
+  };
+
   // 4. Map feature selection callback (clicking building/facility on map)
   campusMap.onFeatureSelectCallback = (item) => {
     navCtrl.showDestination(item);
+    if (item.id && item.type) {
+      searchCtrl.setSelectedLabel(item.id, item.type);
+    }
   };
 
-  // 5. Map canvas click (for setting manual starting point)
+  // 5. Map canvas click (Google Maps style: clicking anywhere drops a pin and shows destination card)
   campusMap.onMapClickCallback = (latlng) => {
     if (navCtrl.originMode === 'manual') {
       navCtrl.setManualOrigin(latlng);
+      return;
     }
+
+    navCtrl.showDestination({
+      id: null,
+      type: 'map_point',
+      name: 'Selected Location',
+      building: 'Campus Map',
+      category: 'Dropped Pin',
+      description: `Coordinates: ${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`,
+      coordinates: {
+        latitude: latlng.lat,
+        longitude: latlng.lng,
+      },
+    });
   };
 
   // 6. Load Campus Data Function
@@ -51,6 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const geojsonData = await Api.getCampusMapData(campusId);
       campusMap.renderCampusData(geojsonData);
+      await searchCtrl.loadCampusLocations(campusId);
     } catch (err) {
       console.error('Error loading campus map data:', err);
     }

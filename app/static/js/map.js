@@ -12,9 +12,11 @@ class CampusMap {
     this.facilitiesLayer = null;
     this.walkwaysLayer = null;
     this.routePolyline = null;
+    this.routeLayers = [];
+    this.originMarker = null;
+    this.destinationMarker = null;
     this.userMarker = null;
     this.userAccuracyCircle = null;
-    this.destinationMarker = null;
     this.currentCampusData = null;
 
     this.onFeatureSelectCallback = null;
@@ -61,37 +63,32 @@ class CampusMap {
           opacity: 0.8,
           dashArray: '5, 5',
           fillColor: '#eff6ff',
-          fillOpacity: 0.1,
+          fillOpacity: 0.06,
         },
       }).addTo(this.map);
 
       this.map.fitBounds(this.boundaryLayer.getBounds(), { padding: [30, 30] });
     }
 
-    // 2. Building Footprints
+    // 2. Building Footprints (Clean vector map, no permanent pins or clutter)
     const buildingFeatures = features.filter((f) => f.properties.layer === 'building_footprint');
+
     this.buildingsLayer = L.geoJSON(buildingFeatures, {
       style: {
-        color: '#1e3a8a',
+        color: '#2563eb',
         weight: 1.5,
         fillColor: '#3b82f6',
-        fillOpacity: 0.35,
+        fillOpacity: 0.16,
       },
       onEachFeature: (feature, layer) => {
         const props = feature.properties;
-        layer.bindTooltip(`<strong>${props.name}</strong> (${props.code})<br><small>${props.floors} Floors • Entrance available</small>`, {
-          className: 'building-tooltip',
+        layer.bindTooltip(`<strong>${props.name}</strong> (${props.code})`, {
+          className: 'building-hover-tooltip',
           sticky: true,
         });
 
-        layer.on('mouseover', () => {
-          layer.setStyle({ fillOpacity: 0.65, weight: 2.5 });
-        });
-        layer.on('mouseout', () => {
-          layer.setStyle({ fillOpacity: 0.35, weight: 1.5 });
-        });
         layer.on('click', (e) => {
-          L.DomEvent.stopPropagation(e);
+          if (e) L.DomEvent.stopPropagation(e);
           if (this.onFeatureSelectCallback) {
             this.onFeatureSelectCallback({
               id: props.id,
@@ -99,69 +96,38 @@ class CampusMap {
               name: props.name,
               code: props.code,
               building: props.name,
+              category: 'Building',
               description: props.description,
               entrance: props.entrance,
               coordinates: {
-                latitude: props.entrance.latitude,
-                longitude: props.entrance.longitude,
+                latitude: props.entrance?.latitude || props.latitude,
+                longitude: props.entrance?.longitude || props.longitude,
               },
             });
           }
         });
+
+        layer.on('mouseover', () => {
+          layer.setStyle({ fillOpacity: 0.35, weight: 2.2, color: '#1d4ed8' });
+        });
+        layer.on('mouseout', () => {
+          layer.setStyle({ fillOpacity: 0.16, weight: 1.5, color: '#2563eb' });
+        });
       },
     }).addTo(this.map);
 
-    // 3. Walkways (Pedestrian Graph)
+    // 3. Walkways (Clean pedestrian network)
     const walkwayFeatures = features.filter((f) => f.properties.layer === 'walkway');
     this.walkwaysLayer = L.geoJSON(walkwayFeatures, {
       style: (feature) => {
         const isStairs = feature.properties.stairs;
+        const ptype = feature.properties.path_type;
         return {
-          color: isStairs ? '#dc2626' : '#94a3b8',
-          weight: isStairs ? 2.5 : 2,
-          opacity: 0.6,
+          color: isStairs ? '#ef4444' : (ptype === 'MAIN_AVENUE' ? '#475569' : '#94a3b8'),
+          weight: ptype === 'MAIN_AVENUE' ? 3 : (isStairs ? 2.5 : 2),
+          opacity: ptype === 'MAIN_AVENUE' ? 0.6 : 0.45,
           dashArray: isStairs ? '3, 4' : null,
         };
-      },
-    }).addTo(this.map);
-
-    // 4. Facilities & POIs
-    const facilityFeatures = features.filter((f) => f.properties.layer === 'facility');
-    this.facilitiesLayer = L.geoJSON(facilityFeatures, {
-      pointToLayer: (feature, latlng) => {
-        const props = feature.properties;
-        const iconHtml = `<div class="facility-pin" style="background-color: ${props.color || '#2563eb'};">📍</div>`;
-        const customIcon = L.divIcon({
-          html: iconHtml,
-          className: 'facility-marker-icon',
-          iconSize: [28, 28],
-          iconAnchor: [14, 14],
-        });
-
-        const marker = L.marker(latlng, { icon: customIcon });
-        marker.bindTooltip(`<strong>${props.name}</strong><br><small>${props.category} • ${props.opening_hours || 'Open'}</small>`, {
-          className: 'building-tooltip',
-        });
-
-        marker.on('click', (e) => {
-          L.DomEvent.stopPropagation(e);
-          if (this.onFeatureSelectCallback) {
-            this.onFeatureSelectCallback({
-              id: props.id,
-              type: 'facility',
-              name: props.name,
-              category: props.category,
-              description: props.description,
-              opening_hours: props.opening_hours,
-              coordinates: {
-                latitude: latlng.lat,
-                longitude: latlng.lng,
-              },
-            });
-          }
-        });
-
-        return marker;
       },
     }).addTo(this.map);
   }
@@ -205,51 +171,222 @@ class CampusMap {
     }
   }
 
-  setDestinationMarker(lat, lng, label = 'Destination') {
+  setSelectedLocationPin(lat, lng, title = 'Selected Location', subtitle = '') {
     if (this.destinationMarker) {
       this.map.removeLayer(this.destinationMarker);
       this.destinationMarker = null;
     }
 
-    const destHtml = `<div class="destination-pin"></div>`;
+    const pinHtml = `
+      <div class="google-pin-wrapper">
+        <div class="google-pin-head">
+          <div class="google-pin-dot"></div>
+        </div>
+        <div class="google-pin-shadow"></div>
+      </div>
+    `;
+
     const icon = L.divIcon({
-      html: destHtml,
-      className: 'dest-marker-container',
-      iconSize: [32, 32],
-      iconAnchor: [16, 32],
+      html: pinHtml,
+      className: 'google-pin-container',
+      iconSize: [36, 44],
+      iconAnchor: [18, 42],
     });
 
-    this.destinationMarker = L.marker([lat, lng], { icon: icon, zIndexOffset: 950 }).addTo(this.map);
-    this.destinationMarker.bindTooltip(`<strong>${label}</strong>`, { className: 'building-tooltip', offset: [0, -28] }).openTooltip();
+    this.destinationMarker = L.marker([lat, lng], { icon: icon, zIndexOffset: 1200 }).addTo(this.map);
+
+    const tooltipContent = subtitle
+      ? `<strong>${title}</strong><br><small>${subtitle}</small>`
+      : `<strong>${title}</strong>`;
+
+    this.destinationMarker.bindTooltip(tooltipContent, {
+      className: 'google-pin-tooltip',
+      permanent: true,
+      direction: 'top',
+      offset: [0, -42],
+    }).openTooltip();
+  }
+
+  setDestinationMarker(lat, lng, label = 'Destination') {
+    this.setSelectedLocationPin(lat, lng, label);
+  }
+
+  setOriginMarker(lat, lng, label = 'Start Location') {
+    if (this.originMarker) {
+      this.map.removeLayer(this.originMarker);
+      this.originMarker = null;
+    }
+
+    const originHtml = `
+      <div class="origin-pin-wrapper" title="${label}">
+        <div class="origin-pin-circle">
+          <div class="origin-pin-inner"></div>
+        </div>
+      </div>
+    `;
+
+    const icon = L.divIcon({
+      html: originHtml,
+      className: 'origin-pin-container',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    });
+
+    this.originMarker = L.marker([lat, lng], { icon: icon, zIndexOffset: 1100 }).addTo(this.map);
+    this.originMarker.bindTooltip(`<strong>${label}</strong>`, {
+      className: 'google-pin-tooltip',
+      permanent: true,
+      direction: 'top',
+      offset: [0, -14],
+    }).openTooltip();
   }
 
   drawRoute(geometryCoordinates) {
-    if (this.routePolyline) {
-      this.map.removeLayer(this.routePolyline);
-      this.routePolyline = null;
-    }
-
+    this.clearRoute();
     if (!geometryCoordinates || geometryCoordinates.length === 0) return;
 
-    // GeoJSON coordinates are [lng, lat], Leaflet polyline requires [lat, lng]
     const latlngs = geometryCoordinates.map((c) => [c[1], c[0]]);
 
-    this.routePolyline = L.polyline(latlngs, {
-      color: '#2563eb',
-      weight: 5,
-      opacity: 0.9,
+    // Casing
+    const casing = L.polyline(latlngs, {
+      color: '#ffffff',
+      weight: 10,
+      opacity: 0.98,
       lineCap: 'round',
       lineJoin: 'round',
     }).addTo(this.map);
 
-    this.map.fitBounds(this.routePolyline.getBounds(), { padding: [50, 50] });
+    const activeLine = L.polyline(latlngs, {
+      color: '#1a73e8',
+      weight: 6,
+      opacity: 1.0,
+      lineCap: 'round',
+      lineJoin: 'round',
+    }).addTo(this.map);
+
+    const innerGlow = L.polyline(latlngs, {
+      color: '#60a5fa',
+      weight: 2,
+      opacity: 0.8,
+      lineCap: 'round',
+      lineJoin: 'round',
+    }).addTo(this.map);
+
+    this.routeLayers.push(casing, activeLine, innerGlow);
+    this.routePolyline = activeLine;
+
+    this.map.fitBounds(activeLine.getBounds(), { padding: [60, 60] });
+  }
+
+  drawMultiRoutes(routes, activeRouteId, onRouteClick) {
+    this.clearRoute();
+    if (!routes || routes.length === 0) return;
+
+    // Render alternative routes first so the active route stays on top
+    const sorted = [...routes].sort((a, b) => (a.id === activeRouteId ? 1 : b.id === activeRouteId ? -1 : 0));
+    let activeLine = null;
+
+    sorted.forEach((route) => {
+      if (!route.geometry || !route.geometry.coordinates || route.geometry.coordinates.length < 2) return;
+      const latlngs = route.geometry.coordinates.map((c) => [c[1], c[0]]);
+      const isActive = (route.id === activeRouteId);
+
+      if (isActive) {
+        // High visibility dual-stroke Google Maps Navigation Route:
+        // 1. Soft dark drop shadow for 3D separation
+        const shadow = L.polyline(latlngs, {
+          color: '#0f172a',
+          weight: 15,
+          opacity: 0.2,
+          lineCap: 'round',
+          lineJoin: 'round',
+        }).addTo(this.map);
+
+        // 2. High-contrast pure white casing background
+        const casing = L.polyline(latlngs, {
+          color: '#ffffff',
+          weight: 11,
+          opacity: 1.0,
+          lineCap: 'round',
+          lineJoin: 'round',
+        }).addTo(this.map);
+
+        // 3. Bold Google Maps vibrant navigation blue
+        activeLine = L.polyline(latlngs, {
+          color: '#1a73e8',
+          weight: 7,
+          opacity: 1.0,
+          lineCap: 'round',
+          lineJoin: 'round',
+        }).addTo(this.map);
+
+        // 4. Subtle inner light ribbon
+        const innerGlow = L.polyline(latlngs, {
+          color: '#93c5fd',
+          weight: 2.5,
+          opacity: 0.9,
+          lineCap: 'round',
+          lineJoin: 'round',
+        }).addTo(this.map);
+
+        this.routeLayers.push(shadow, casing, activeLine, innerGlow);
+        this.routePolyline = activeLine;
+      } else {
+        // Alternative route with white outline
+        const altCasing = L.polyline(latlngs, {
+          color: '#ffffff',
+          weight: 7,
+          opacity: 0.85,
+          lineCap: 'round',
+          lineJoin: 'round',
+        }).addTo(this.map);
+
+        const altLine = L.polyline(latlngs, {
+          color: '#64748b',
+          weight: 4.5,
+          opacity: 0.75,
+          dashArray: '5, 6',
+          className: 'alt-route-polyline',
+        }).addTo(this.map);
+
+        altLine.bindTooltip(
+          `<strong>${route.name}</strong><br><small>${route.difference || Math.round(route.total_distance_meters) + 'm'}</small><br><em>Click to choose this route</em>`,
+          { sticky: true, className: 'google-pin-tooltip' }
+        );
+
+        const onAltClick = (e) => {
+          L.DomEvent.stopPropagation(e);
+          if (onRouteClick) onRouteClick(route.id);
+        };
+        altLine.on('click', onAltClick);
+        altCasing.on('click', onAltClick);
+
+        this.routeLayers.push(altCasing, altLine);
+      }
+    });
+
+    if (activeLine) {
+      this.map.fitBounds(activeLine.getBounds(), { padding: [70, 70], maxZoom: 18 });
+    }
   }
 
   clearRoute() {
+    if (this.routeLayers && this.routeLayers.length > 0) {
+      this.routeLayers.forEach((l) => this.map.removeLayer(l));
+      this.routeLayers = [];
+    }
     if (this.routePolyline) {
       this.map.removeLayer(this.routePolyline);
       this.routePolyline = null;
     }
+    if (this.originMarker) {
+      this.map.removeLayer(this.originMarker);
+      this.originMarker = null;
+    }
+  }
+
+  clearSelection() {
+    this.clearRoute();
     if (this.destinationMarker) {
       this.map.removeLayer(this.destinationMarker);
       this.destinationMarker = null;
@@ -259,9 +396,8 @@ class CampusMap {
   clearLayers() {
     if (this.boundaryLayer) this.map.removeLayer(this.boundaryLayer);
     if (this.buildingsLayer) this.map.removeLayer(this.buildingsLayer);
-    if (this.facilitiesLayer) this.map.removeLayer(this.facilitiesLayer);
     if (this.walkwaysLayer) this.map.removeLayer(this.walkwaysLayer);
-    this.clearRoute();
+    this.clearSelection();
   }
 
   recenterCampus() {

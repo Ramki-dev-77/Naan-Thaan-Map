@@ -117,38 +117,282 @@
   cursor: pointer;
 }
 
-/* Destination Target Marker */
-.destination-pin {
+/* Destination Target Marker & Google Maps Pin */
+.google-pin-container {
+  background: transparent !important;
+  border: none !important;
+}
+
+.google-pin-wrapper {
+  position: relative;
+  width: 36px;
+  height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: pin-drop 0.32s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes pin-drop {
+  0% {
+    transform: translateY(-36px) scale(0.6);
+    opacity: 0;
+  }
+  70% {
+    transform: translateY(3px) scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.google-pin-head {
   width: 32px;
   height: 32px;
-  background-color: #ef4444;
+  background: linear-gradient(145deg, #ef4444 0%, #dc2626 100%);
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
-  border: 3px solid #ffffff;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 4px 10px rgba(220, 38, 38, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.destination-pin::after {
-  content: "";
+.google-pin-dot {
   width: 10px;
   height: 10px;
-  border-radius: 50%;
   background-color: #ffffff;
+  border-radius: 50%;
   transform: rotate(45deg);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
-/* Custom Tooltips */
-.leaflet-tooltip.building-tooltip {
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  color: var(--text-main);
-  font-family: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
-  box-shadow: var(--shadow-md);
-  border-radius: var(--radius-sm);
-  padding: 0.35rem 0.65rem;
+.google-pin-shadow {
+  width: 18px;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 50%;
+  margin-top: 1px;
+  filter: blur(1px);
 }
+
+/* Google Maps Style Origin Pin */
+.origin-pin-container {
+  background: transparent !important;
+  border: none !important;
+}
+
+.origin-pin-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  animation: pin-drop 0.3s ease-out;
+}
+
+.origin-pin-circle {
+  width: 22px;
+  height: 22px;
+  background: #10b981;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 3px 8px rgba(16, 185, 129, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.origin-pin-inner {
+  width: 6px;
+  height: 6px;
+  background: #ffffff;
+  border-radius: 50%;
+}
+
+/* Selected Location Tooltip / Badge */
+.leaflet-tooltip.google-pin-tooltip {
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 5px 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  color: #0f172a;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  pointer-events: none;
+}
+
+.leaflet-tooltip.google-pin-tooltip strong {
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.leaflet-tooltip.google-pin-tooltip small {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+/* Building Hover Tooltip */
+.leaflet-tooltip.building-hover-tooltip {
+  background-color: rgba(15, 23, 42, 0.88);
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* Multi-Route Polylines & Selection */
+.alt-route-polyline {
+  cursor: pointer;
+}
+
+.alt-route-polyline:hover {
+  stroke: #2563eb !important;
+  stroke-opacity: 0.9 !important;
+  stroke-width: 6 !important;
+}
+
+/* Route Choice Cards */
+.route-choices-section {
+  margin-top: 0.85rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.route-choices-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.6rem;
+}
+
+.route-choices-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.route-choices-hint {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.route-cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.route-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.65rem 0.85rem;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  position: relative;
+}
+
+.route-card:hover {
+  border-color: #93c5fd;
+  background: var(--bg-page);
+  transform: translateY(-1px);
+}
+
+.route-card.selected {
+  border-color: var(--primary);
+  background: #eff6ff;
+  box-shadow: 0 0 0 1px var(--primary), 0 2px 6px rgba(37, 99, 235, 0.12);
+}
+
+.route-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.route-card-name-group {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.route-card-icon {
+  font-size: 1rem;
+}
+
+.route-card-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.route-card-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.route-card-badge.fastest {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.route-card-badge.step-free {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.route-card-badge.main-avenue {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.route-card-metrics {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.route-card-time {
+  color: var(--primary);
+}
+
+.route-card-diff {
+  font-size: 0.72rem;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  line-height: 1.25;
+}
+
+.route-card.selected .route-card-diff {
+  color: #1e40af;
+  font-weight: 600;
+}
+
