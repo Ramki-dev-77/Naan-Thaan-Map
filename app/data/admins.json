@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "username": "admin",
+    "email": "admin@campus.edu",
+    "password_hash": "pbkdf2:sha256:600000$gpjz6bix2U6fpXJj$de3ef870727a59da373fa4f53119643a75bfd4b1087ee85c6efc4974256768b9",
+    "role": "superadmin",
+    "is_active": 1,
+    "last_login": null,
+    "created_at": "2026-09-11 17:29:54.064339"
+  }
+]

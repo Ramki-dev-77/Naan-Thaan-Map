@@ -1,21 +1,41 @@
 """
 Campus Navigation System — Category Model
-Provides taxonomical grouping (Academic, Dining, Parking, Restrooms, Health, etc.)
-with icons and UI badges.
+Provides taxonomical grouping with icons and UI badges.
+Zero-database in-memory model backed by data_store.
 """
-from app.extensions import db
+from app.data_store import data_store, ColumnField
 
 
-class Category(db.Model):
-    __tablename__ = "categories"
+class _ModelMeta(type):
+    @property
+    def query(cls):
+        return data_store.get_query(cls)
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-    slug = db.Column(db.String(100), unique=True, nullable=False, index=True)
-    icon = db.Column(db.String(50), nullable=False, default="map-pin")  # e.g., 'utensils', 'book', 'car', 'first-aid'
-    color = db.Column(db.String(30), nullable=False, default="#2563eb")  # Hex color code
 
-    facilities = db.relationship("Facility", back_populates="category")
+class Category(metaclass=_ModelMeta):
+    id = ColumnField("Category", "id")
+    name = ColumnField("Category", "name")
+    slug = ColumnField("Category", "slug")
+
+    def __init__(
+        self,
+        id: int = None,
+        name: str = "",
+        slug: str = "",
+        icon: str = "map-pin",
+        color: str = "#2563eb",
+        **kwargs
+    ):
+        self.id = int(id) if id is not None else None
+        self.name = name
+        self.slug = slug
+        self.icon = icon
+        self.color = color
+        self.facilities = []
+
+    @classmethod
+    def get(cls, cat_id: int):
+        return data_store.get_by_id(cls, cat_id)
 
     def to_dict(self):
         return {
@@ -25,3 +45,6 @@ class Category(db.Model):
             "icon": self.icon,
             "color": self.color,
         }
+
+    def __repr__(self):
+        return f"<Category id={self.id} name='{self.name}'>"

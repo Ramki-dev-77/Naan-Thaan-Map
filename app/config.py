@@ -1,6 +1,7 @@
 """
 Campus Navigation System — Application Configuration
 Supports Development, Testing, and Production environments.
+Database-free: configuration powered by static JSON data files.
 """
 import os
 from pathlib import Path
@@ -12,30 +13,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from .env if present
 load_dotenv(BASE_DIR / ".env")
 
+DEFAULT_APP_ENV = "production" if os.getenv("VERCEL") == "1" else "development"
+
 
 class Config:
     """Base Configuration."""
-    APP_ENV = os.getenv("APP_ENV", "development")
+    APP_ENV = os.getenv("APP_ENV", DEFAULT_APP_ENV)
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-campus-nav-2026")
     DEBUG = False
     TESTING = False
 
-    # Database
-    # Default to PostgreSQL with PostGIS; fallback to local SQLite for zero-dependency test mode
-    DATABASE_URL = os.getenv("DATABASE_URL")
-    if not DATABASE_URL:
-        # Fallback to local SQLite database in project root
-        DATABASE_URL = f"sqlite:///{BASE_DIR / 'campus_nav_dev.db'}"
-    
-    # SQLAlchemy 2.x dialect normalization for postgres
-    if DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-    
-    SQLALCHEMY_DATABASE_URI = DATABASE_URL
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_pre_ping": True,
-    }
+    # Static Data Directory
+    DATA_DIR = BASE_DIR / "app" / "data"
 
     # Session & Security
     SESSION_COOKIE_HTTPONLY = True
@@ -65,8 +54,6 @@ class TestingConfig(Config):
     """Testing Configuration."""
     TESTING = True
     DEBUG = True
-    DATABASE_URL = "sqlite:///:memory:"
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     RATELIMIT_ENABLED = False
 
 
@@ -75,7 +62,6 @@ class ProductionConfig(Config):
     DEBUG = False
     TESTING = False
     SESSION_COOKIE_SECURE = True
-    # In production, SECRET_KEY must be supplied
     SECRET_KEY = os.getenv("SECRET_KEY")
 
 
@@ -88,5 +74,5 @@ config_by_name = {
 
 def get_config():
     """Retrieve active configuration object based on APP_ENV."""
-    env = os.getenv("APP_ENV", "development").lower()
+    env = os.getenv("APP_ENV", Config.APP_ENV).lower()
     return config_by_name.get(env, DevelopmentConfig)

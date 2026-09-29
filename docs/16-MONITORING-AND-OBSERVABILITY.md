@@ -33,10 +33,10 @@ Under no circumstances are user exact coordinates, authorization passwords, sess
 - **Process Liveness Probe (`GET /health`)**:
   - Purpose: Validates that Gunicorn worker is accepting HTTP requests and has not deadlocked.
   - Return: HTTP 200 `{"status": "ok", "uptime_seconds": 18240}`.
-  - Dependency: Zero database ping to avoid cascading failovers under DB load.
-- **Dependency Readiness Probe (`GET /ready`)**:
-  - Purpose: Validates database connection pool and spatial extension readiness before routing traffic to a newly started container.
-  - Return: HTTP 200 `{"status": "ready", "database": "connected", "postgis": "available"}`.
+  - Dependency: No external data service; liveness checks only confirm the process responds.
+- **Data Readiness Probe (`GET /ready`)**:
+  - Purpose: Confirms the bundled JSON campus data has been loaded before serving requests.
+  - Return: HTTP 200 `{"status": "ready", "data_source": "static_json", "campuses_count": 2}`.
 
 ---
 
@@ -48,6 +48,6 @@ Under no circumstances are user exact coordinates, authorization passwords, sess
 2. **High P95 Latency Spike**:
    - Condition: Route calculation response time `P95 > 500 ms` for 10 minutes.
    - Severity: Warning (Slack alert).
-3. **Database Connection Saturation**:
-   - Condition: Active connections / Max connections > 85%.
-   - Action: Check connection leak or increase Cloud SQL tier.
+3. **Data Readiness Failure**:
+  - Condition: `/ready` returns HTTP 503 after startup.
+  - Action: Check the bundled JSON files and application startup logs.

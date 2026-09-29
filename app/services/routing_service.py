@@ -6,7 +6,6 @@ accessibility constraints, nearest-node snapping, and turn-by-turn instruction g
 import math
 import heapq
 from typing import List, Dict, Tuple, Optional, Any
-from app.extensions import db
 from app.models.navigation import NavigationNode, NavigationEdge
 from app.models.building import Building
 from app.models.room import Room
@@ -94,7 +93,7 @@ class CampusPedestrianRoutingService(RoutingProviderInterface):
         Returns (node_sequence, total_physical_distance_meters).
         """
         if start_node_id == target_node_id:
-            node = db.session.get(NavigationNode, start_node_id)
+            node = NavigationNode.get(start_node_id)
             return ([node] if node else []), 0.0
 
         # Load all active nodes and edges for this campus
@@ -105,8 +104,8 @@ class CampusPedestrianRoutingService(RoutingProviderInterface):
         target_node = nodes_dict[target_node_id]
 
         # Build adjacency graph
-        edges = NavigationEdge.query.join(NavigationNode, NavigationEdge.source_node_id == NavigationNode.id)\
-            .filter(NavigationNode.campus_id == campus_id).all()
+        all_edges = NavigationEdge.query.all()
+        edges = [e for e in all_edges if e.source_node and e.source_node.campus_id == campus_id]
 
         adj: Dict[int, List[Tuple[int, float, bool, bool, str]]] = {nid: [] for nid in nodes_dict}
 
@@ -284,7 +283,7 @@ class RoutingService:
         destination_label = "Destination"
 
         if dest_type == "room":
-            room = db.session.get(Room, dest_id)
+            room = Room.get(dest_id)
             if not room:
                 raise AppError("Destination room not found.", code="DESTINATION_NOT_FOUND", status_code=404)
             destination_label = f"{room.room_number} — {room.name}"
@@ -292,7 +291,7 @@ class RoutingService:
             dest_lng = room.longitude or (room.building.longitude if room.building else None)
             # If room has specific door node, use it; otherwise use building entrance
             if room.node_id:
-                target_node = db.session.get(NavigationNode, room.node_id)
+                target_node = NavigationNode.get(room.node_id)
             if not target_node and room.building:
                 target_node = NavigationNode.query.filter_by(building_id=room.building_id, node_type="ENTRANCE").first()
                 if not target_node:
@@ -303,7 +302,7 @@ class RoutingService:
                     )
 
         elif dest_type == "building":
-            building = db.session.get(Building, dest_id)
+            building = Building.get(dest_id)
             if not building:
                 raise AppError("Destination building not found.", code="DESTINATION_NOT_FOUND", status_code=404)
             destination_label = building.name
@@ -318,7 +317,7 @@ class RoutingService:
                 )
 
         elif dest_type == "facility":
-            facility = db.session.get(Facility, dest_id)
+            facility = Facility.get(dest_id)
             if not facility:
                 raise AppError("Destination facility not found.", code="DESTINATION_NOT_FOUND", status_code=404)
             destination_label = facility.name
@@ -331,7 +330,7 @@ class RoutingService:
             )
 
         elif dest_type == "node":
-            target_node = db.session.get(NavigationNode, dest_id)
+            target_node = NavigationNode.get(dest_id)
             if target_node:
                 destination_label = target_node.label or "Campus Point"
                 dest_lat = target_node.latitude

@@ -2,6 +2,7 @@
 Campus Navigation System — Search Service
 Implements tiered ranking across buildings, rooms, departments, and facilities.
 Ranks: 1. Exact match, 2. Prefix match, 3. Strong substring match, 4. Fuzzy match.
+Zero-database implementation reading from in-memory data store.
 """
 import re
 from difflib import SequenceMatcher
@@ -24,7 +25,6 @@ class SearchService:
             return 0.95
         if query_lower in target_lower:
             return 0.85
-        # Subsequence ratio
         return SequenceMatcher(None, query_lower, target_lower).ratio()
 
     @classmethod
@@ -38,12 +38,11 @@ class SearchService:
         q_lower = clean_query.lower()
         results = []
 
-        # 1. Search Buildings (Only if category is empty or 'academic')
+        # 1. Search Buildings (Only if category is empty or 'academic' or 'all')
         if not category_slug or category_slug.lower() in ["academic", "all"]:
-            b_query = Building.query
+            buildings = Building.query.all()
             if campus_id:
-                b_query = b_query.filter(Building.campus_id == campus_id)
-            buildings = b_query.all()
+                buildings = [b for b in buildings if b.campus_id == campus_id]
 
             for b in buildings:
                 score = 0.0
@@ -85,12 +84,11 @@ class SearchService:
                         "relevance": round(score, 3),
                     })
 
-        # 2. Search Rooms (Only if category is empty or 'academic')
+        # 2. Search Rooms (Only if category is empty or 'academic' or 'all')
         if not category_slug or category_slug.lower() in ["academic", "all"]:
-            r_query = Room.query.join(Building)
+            rooms = Room.query.all()
             if campus_id:
-                r_query = r_query.filter(Building.campus_id == campus_id)
-            rooms = r_query.all()
+                rooms = [r for r in rooms if r.building and r.building.campus_id == campus_id]
 
             for r in rooms:
                 score = 0.0
@@ -131,12 +129,11 @@ class SearchService:
                     })
 
         # 3. Search Facilities
-        f_query = Facility.query
+        facilities = Facility.query.all()
         if campus_id:
-            f_query = f_query.filter(Facility.campus_id == campus_id)
+            facilities = [f for f in facilities if f.campus_id == campus_id]
         if category_slug and category_slug.lower() != "all":
-            f_query = f_query.join(Category).filter(Category.slug == category_slug)
-        facilities = f_query.all()
+            facilities = [f for f in facilities if f.category and f.category.slug == category_slug]
 
         for f in facilities:
             if is_wildcard:

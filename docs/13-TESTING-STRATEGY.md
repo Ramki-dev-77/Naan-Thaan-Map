@@ -8,7 +8,7 @@ Quality assurance uses a multi-tier testing strategy managed via `pytest` and `p
                 / \
                /   \      E2E Integration Tests (API + Frontend journeys)
               /-----\
-             /       \    API Contract & Database Tests (Flask test client)
+             /       \    API Contract Tests (Flask test client)
             /---------\
            /           \  Domain Unit Tests (A* Routing, Search Ranking, Geometry)
           ───────────────
@@ -33,7 +33,7 @@ Quality assurance uses a multi-tier testing strategy managed via `pytest` and `p
 
 ### 2.3 API Contract Tests (`tests/test_api.py`)
 - `GET /health` returns HTTP 200 with status "ok".
-- `GET /ready` verifies database connectivity and returns HTTP 200.
+- `GET /ready` verifies the static JSON data store is loaded and returns HTTP 200.
 - `GET /api/v1/campuses/{id}/map-data` returns valid GeoJSON FeatureCollection with required properties (`name`, `category`, `building_id`).
 - Error envelope structure compliance on 404, 400, and 422 conditions.
 

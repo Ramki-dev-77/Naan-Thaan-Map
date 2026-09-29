@@ -2,11 +2,13 @@
 Campus Navigation System — Admin API
 Authenticated REST management endpoints for campus geometry, buildings, rooms,
 facilities, network nodes, and audit logs.
+Zero-database implementation using in-memory data store.
 """
 import json
 from flask import request, jsonify, session, g
 from app.api.v1 import api_v1_bp
-from app.extensions import db, limiter
+from app.extensions import limiter
+from app.data_store import data_store
 from app.models.admin import AdminUser
 from app.models.audit import AuditLog
 from app.models.building import Building
@@ -18,7 +20,7 @@ from app.utils.errors import AppError
 
 
 def log_audit_action(action: str, entity_type: str, entity_id: int = None, metadata: dict = None):
-    """Utility to persist administrative mutation in AuditLog."""
+    """Utility to record administrative action in in-memory AuditLog."""
     admin_id = session.get("admin_id")
     remote_ip = request.headers.get("X-Forwarded-For", request.remote_addr)
     log_entry = AuditLog(
@@ -29,8 +31,7 @@ def log_audit_action(action: str, entity_type: str, entity_id: int = None, metad
         metadata_json=json.dumps(metadata) if metadata else None,
         ip_address=remote_ip,
     )
-    db.session.add(log_entry)
-    db.session.commit()
+    data_store.add(log_entry)
 
 
 @api_v1_bp.route("/admin/login", methods=["POST"])
@@ -98,9 +99,7 @@ def create_building():
         floors=int(payload.get("floors", 1)),
         accessible=bool(payload.get("accessible", True))
     )
-    db.session.add(building)
-    db.session.commit()
-
+    data_store.add(building)
     log_audit_action("CREATE_BUILDING", "Building", building.id, {"name": name, "code": code})
     return jsonify({"status": "success", "data": building.to_dict()}), 201
 
@@ -108,7 +107,7 @@ def create_building():
 @api_v1_bp.route("/admin/buildings/<int:building_id>", methods=["PUT"])
 @admin_required
 def update_building(building_id: int):
-    building = db.session.get(Building, building_id)
+    building = Building.get(building_id)
     if not building:
         raise AppError("Building not found.", code="BUILDING_NOT_FOUND", status_code=404)
 
@@ -132,7 +131,7 @@ def update_building(building_id: int):
     if "accessible" in payload:
         building.accessible = bool(payload["accessible"])
 
-    db.session.commit()
+    data_store.add(building)
     log_audit_action("UPDATE_BUILDING", "Building", building.id, {"updated_fields": list(payload.keys())})
     return jsonify({"status": "success", "data": building.to_dict()}), 200
 
@@ -140,13 +139,12 @@ def update_building(building_id: int):
 @api_v1_bp.route("/admin/buildings/<int:building_id>", methods=["DELETE"])
 @admin_required
 def delete_building(building_id: int):
-    building = db.session.get(Building, building_id)
+    building = Building.get(building_id)
     if not building:
         raise AppError("Building not found.", code="BUILDING_NOT_FOUND", status_code=404)
 
     b_name = building.name
-    db.session.delete(building)
-    db.session.commit()
+    data_store.delete(building)
     log_audit_action("DELETE_BUILDING", "Building", building_id, {"name": b_name})
     return jsonify({"status": "success", "message": f"Building {b_name} deleted."}), 200
 
@@ -175,8 +173,7 @@ def create_room():
         longitude=float(payload["longitude"]) if "longitude" in payload and payload["longitude"] is not None else None,
         node_id=payload.get("node_id")
     )
-    db.session.add(room)
-    db.session.commit()
+    data_store.add(room)
     log_audit_action("CREATE_ROOM", "Room", room.id, {"room_number": room_number, "name": name})
     return jsonify({"status": "success", "data": room.to_dict()}), 201
 
@@ -207,8 +204,7 @@ def create_facility():
         accessible=bool(payload.get("accessible", True)),
         opening_hours=payload.get("opening_hours")
     )
-    db.session.add(facility)
-    db.session.commit()
+    data_store.add(facility)
     log_audit_action("CREATE_FACILITY", "Facility", facility.id, {"name": name})
     return jsonify({"status": "success", "data": facility.to_dict()}), 201
 
@@ -236,8 +232,7 @@ def create_node():
         longitude=float(lng),
         is_active=bool(payload.get("is_active", True))
     )
-    db.session.add(node)
-    db.session.commit()
+    data_store.add(node)
     log_audit_action("CREATE_NODE", "NavigationNode", node.id, {"label": node.label, "type": node.node_type})
     return jsonify({"status": "success", "data": node.to_dict()}), 201
 
@@ -262,8 +257,7 @@ def create_edge():
         path_type=payload.get("path_type", "PAVED_WALKWAY"),
         is_bidirectional=bool(payload.get("is_bidirectional", True))
     )
-    db.session.add(edge)
-    db.session.commit()
+    data_store.add(edge)
     log_audit_action("CREATE_EDGE", "NavigationEdge", edge.id, {"src": src_id, "dst": dst_id})
     return jsonify({"status": "success", "data": edge.to_dict()}), 201
 

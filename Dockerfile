@@ -8,12 +8,6 @@ FROM python:3.11-slim-bookworm AS builder
 
 WORKDIR /build
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
-
 COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
@@ -22,9 +16,8 @@ FROM python:3.11-slim-bookworm AS runner
 
 WORKDIR /app
 
-# Install runtime spatial & postgres libraries
+# Install curl for the container health check.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 

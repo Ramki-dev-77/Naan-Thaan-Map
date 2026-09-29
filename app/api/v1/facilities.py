@@ -1,6 +1,7 @@
 """
 Campus Navigation System — Facilities API
 Serves campus points of interest, parking lots, medical centers, and amenities.
+Zero-database implementation reading from in-memory data store.
 """
 from flask import request, jsonify, g
 from app.api.v1 import api_v1_bp
@@ -18,13 +19,12 @@ def get_facilities():
     campus_id = request.args.get("campus_id", type=int)
     category_id = request.args.get("category_id", type=int)
 
-    query = Facility.query
+    facilities = Facility.query.all()
     if campus_id:
-        query = query.filter(Facility.campus_id == campus_id)
+        facilities = [f for f in facilities if f.campus_id == campus_id]
     if category_id:
-        query = query.filter(Facility.category_id == category_id)
+        facilities = [f for f in facilities if f.category_id == category_id]
 
-    facilities = query.all()
     return jsonify({
         "status": "success",
         "data": [f.to_dict() for f in facilities],

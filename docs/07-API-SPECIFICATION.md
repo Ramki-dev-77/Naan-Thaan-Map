@@ -38,7 +38,7 @@ All endpoints reside under `/api/v1` base path and return structured JSON with c
 
 ### 2.1 System Health
 - `GET /health`: Process liveness check (HTTP 200 OK, no DB ping required).
-- `GET /ready`: Application readiness check (verifies database connectivity).
+- `GET /ready`: Application readiness check (verifies the bundled static JSON data is loaded).
 
 ### 2.2 Campuses & Map Data
 - `GET /api/v1/campuses`: List all active campuses.

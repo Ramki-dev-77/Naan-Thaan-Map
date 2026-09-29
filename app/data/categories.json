@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "name": "Academic",
+    "slug": "academic",
+    "icon": "book",
+    "color": "#2563eb"
+  },
+  {
+    "id": 2,
+    "name": "Dining",
+    "slug": "dining",
+    "icon": "coffee",
+    "color": "#f97316"
+  },
+  {
+    "id": 3,
+    "name": "Parking",
+    "slug": "parking",
+    "icon": "car",
+    "color": "#64748b"
+  },
+  {
+    "id": 4,
+    "name": "Medical",
+    "slug": "medical",
+    "icon": "plus-circle",
+    "color": "#ef4444"
+  },
+  {
+    "id": 5,
+    "name": "Restroom",
+    "slug": "restroom",
+    "icon": "restroom",
+    "color": "#06b6d4"
+  },
+  {
+    "id": 6,
+    "name": "Administration",
+    "slug": "admin",
+    "icon": "briefcase",
+    "color": "#8b5cf6"
+  },
+  {
+    "id": 7,
+    "name": "Auditorium",
+    "slug": "auditorium",
+    "icon": "users",
+    "color": "#ec4899"
+  },
+  {
+    "id": 8,
+    "name": "Library",
+    "slug": "library",
+    "icon": "bookmark",
+    "color": "#10b981"
+  }
+]

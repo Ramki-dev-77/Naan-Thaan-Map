@@ -6,7 +6,7 @@ The system segregates routing into two distinct domains:
 
 1. **Layer 1: Campus Pedestrian Graph (Internal)**
    - Operates entirely within the campus boundaries on university-maintained pathways, ramps, building doorways, corridors, stairs, and elevator shafts.
-   - Powered by an in-memory spatial graph loaded from `NavigationNode` and `NavigationEdge` database models.
+  - Powered by an in-memory spatial graph loaded from `nodes` and `edges` in the bundled campus network JSON.
    - Uses the **A* (A-Star) search algorithm** with Haversine distance heuristic.
    - Cost function incorporates physical distance plus penalization terms (stairs, surface roughness, accessibility constraints).
 

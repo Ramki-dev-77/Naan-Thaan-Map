@@ -1,0 +1,2152 @@
+[
+  {
+    "id": 1,
+    "campus_id": 1,
+    "name": "Administration Block",
+    "code": "ADM",
+    "description": "Central Administrative Offices, Dean of Academics, Registrar, and Admissions.",
+    "latitude": 12.9708,
+    "longitude": 77.5935,
+    "entrance_latitude": 12.9708,
+    "entrance_longitude": 77.5939,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            77.5931,
+            12.970500000000001
+          ],
+          [
+            77.5939,
+            12.970500000000001
+          ],
+          [
+            77.5939,
+            12.9711
+          ],
+          [
+            77.5931,
+            12.9711
+          ],
+          [
+            77.5931,
+            12.970500000000001
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-11 17:29:54.075369",
+    "updated_at": "2026-09-11 17:29:54.075369"
+  },
+  {
+    "id": 2,
+    "campus_id": 1,
+    "name": "Computer Science Block",
+    "code": "CSB",
+    "description": "Department of Computer Science & Engineering, AI Lab, Systems Lab, and Cloud Infrastructure Hub.",
+    "latitude": 12.9732,
+    "longitude": 77.594,
+    "entrance_latitude": 12.9732,
+    "entrance_longitude": 77.5944,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            77.5936,
+            12.972900000000001
+          ],
+          [
+            77.5944,
+            12.972900000000001
+          ],
+          [
+            77.5944,
+            12.9735
+          ],
+          [
+            77.5936,
+            12.9735
+          ],
+          [
+            77.5936,
+            12.972900000000001
+          ]
+        ]
+      ]
+    },
+    "floors": 4,
+    "accessible": true,
+    "created_at": "2026-09-11 17:29:54.076370",
+    "updated_at": "2026-09-11 17:29:54.076370"
+  },
+  {
+    "id": 3,
+    "campus_id": 1,
+    "name": "Electronics Block",
+    "code": "EEB",
+    "description": "Electronics, Robotics, VLSI Design Labs, and Microcontroller Workshops.",
+    "latitude": 12.9735,
+    "longitude": 77.596,
+    "entrance_latitude": 12.9735,
+    "entrance_longitude": 77.5956,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            77.5956,
+            12.9732
+          ],
+          [
+            77.5964,
+            12.9732
+          ],
+          [
+            77.5964,
+            12.973799999999999
+          ],
+          [
+            77.5956,
+            12.973799999999999
+          ],
+          [
+            77.5956,
+            12.9732
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-11 17:29:54.077788",
+    "updated_at": "2026-09-11 17:29:54.077788"
+  },
+  {
+    "id": 4,
+    "campus_id": 1,
+    "name": "Central Library",
+    "code": "LIB",
+    "description": "Multilevel Digital Archive, Quiet Study Zones, Journal Collections, and Collaborative Study Rooms.",
+    "latitude": 12.972,
+    "longitude": 77.5952,
+    "entrance_latitude": 12.972,
+    "entrance_longitude": 77.5948,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            77.5948,
+            12.9717
+          ],
+          [
+            77.5956,
+            12.9717
+          ],
+          [
+            77.5956,
+            12.972299999999999
+          ],
+          [
+            77.5948,
+            12.972299999999999
+          ],
+          [
+            77.5948,
+            12.9717
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-11 17:29:54.077788",
+    "updated_at": "2026-09-11 17:29:54.077788"
+  },
+  {
+    "id": 5,
+    "campus_id": 1,
+    "name": "Student Center",
+    "code": "SAC",
+    "description": "Student Dining Hall, Cafeteria, Cultural Activity Rooms, and Campus Bookstore.",
+    "latitude": 12.9715,
+    "longitude": 77.5962,
+    "entrance_latitude": 12.9715,
+    "entrance_longitude": 77.5958,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            77.5958,
+            12.971200000000001
+          ],
+          [
+            77.5966,
+            12.971200000000001
+          ],
+          [
+            77.5966,
+            12.9718
+          ],
+          [
+            77.5958,
+            12.9718
+          ],
+          [
+            77.5958,
+            12.971200000000001
+          ]
+        ]
+      ]
+    },
+    "floors": 2,
+    "accessible": true,
+    "created_at": "2026-09-11 17:29:54.077788",
+    "updated_at": "2026-09-11 17:29:54.077788"
+  },
+  {
+    "id": 6,
+    "campus_id": 1,
+    "name": "Main Auditorium",
+    "code": "AUD",
+    "description": "1,500-seat Plenary Hall for Graduation, Conferences, Guest Lectures, and Cultural Events.",
+    "latitude": 12.9707,
+    "longitude": 77.5955,
+    "entrance_latitude": 12.9707,
+    "entrance_longitude": 77.5951,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            77.5951,
+            12.970400000000001
+          ],
+          [
+            77.5959,
+            12.970400000000001
+          ],
+          [
+            77.5959,
+            12.971
+          ],
+          [
+            77.5951,
+            12.971
+          ],
+          [
+            77.5951,
+            12.970400000000001
+          ]
+        ]
+      ]
+    },
+    "floors": 2,
+    "accessible": true,
+    "created_at": "2026-09-11 17:29:54.077788",
+    "updated_at": "2026-09-11 17:29:54.077788"
+  },
+  {
+    "id": 7,
+    "campus_id": 2,
+    "name": "Administration Block",
+    "code": "ADM",
+    "description": "Principal Office, Dean Academics, Examination Cell, and Admissions.",
+    "latitude": 12.98695,
+    "longitude": 79.97195,
+    "entrance_latitude": 12.98696,
+    "entrance_longitude": 79.97195,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.971643,
+            12.9869254
+          ],
+          [
+            79.9718625,
+            12.9869234
+          ],
+          [
+            79.9718625,
+            12.9869648
+          ],
+          [
+            79.9719443,
+            12.986964
+          ],
+          [
+            79.9719658,
+            12.9869638
+          ],
+          [
+            79.9721187,
+            12.9868099
+          ],
+          [
+            79.9722571,
+            12.9866707
+          ],
+          [
+            79.9722575,
+            12.9866219
+          ],
+          [
+            79.972258,
+            12.9865711
+          ],
+          [
+            79.9722155,
+            12.9865374
+          ],
+          [
+            79.9722571,
+            12.9866707
+          ],
+          [
+            79.9721973,
+            12.9868788
+          ],
+          [
+            79.9719612,
+            12.9871123
+          ],
+          [
+            79.9719469,
+            12.987112
+          ],
+          [
+            79.9718728,
+            12.9871104
+          ],
+          [
+            79.9718738,
+            12.9870766
+          ],
+          [
+            79.9718315,
+            12.9870709
+          ],
+          [
+            79.971792,
+            12.987132
+          ],
+          [
+            79.9716962,
+            12.987132
+          ],
+          [
+            79.9716417,
+            12.9870803
+          ],
+          [
+            79.971643,
+            12.9869254
+          ]
+        ]
+      ]
+    },
+    "floors": 2,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.716941",
+    "updated_at": "2026-09-18 16:47:40.716941"
+  },
+  {
+    "id": 8,
+    "campus_id": 2,
+    "name": "Dr. A.C. Muthiah Central Library",
+    "code": "LIB",
+    "description": "Dr. A.C. Muthiah Central Library with digital archives, reference stacks, and quiet reading halls.",
+    "latitude": 12.986805,
+    "longitude": 79.971314,
+    "entrance_latitude": 12.986904,
+    "entrance_longitude": 79.971196,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9711958,
+            12.9869043
+          ],
+          [
+            79.9711992,
+            12.9870178
+          ],
+          [
+            79.9715351,
+            12.9870001
+          ],
+          [
+            79.9715403,
+            12.9869116
+          ],
+          [
+            79.9715423,
+            12.9868144
+          ],
+          [
+            79.971471,
+            12.9868125
+          ],
+          [
+            79.9714651,
+            12.9867812
+          ],
+          [
+            79.9714664,
+            12.9866281
+          ],
+          [
+            79.9712421,
+            12.9866326
+          ],
+          [
+            79.9712455,
+            12.9867027
+          ],
+          [
+            79.9711859,
+            12.9867018
+          ],
+          [
+            79.9711883,
+            12.9867473
+          ],
+          [
+            79.9712004,
+            12.9867474
+          ],
+          [
+            79.9712027,
+            12.9867878
+          ],
+          [
+            79.9711691,
+            12.9867872
+          ],
+          [
+            79.9711677,
+            12.986906
+          ],
+          [
+            79.9711958,
+            12.9869043
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.717906",
+    "updated_at": "2026-09-18 16:47:40.717906"
+  },
+  {
+    "id": 9,
+    "campus_id": 2,
+    "name": "Computer Science Block",
+    "code": "CSB",
+    "description": "Department of Computer Science & Engineering, AI Lab, Systems Lab, and Cloud Infrastructure Hub.",
+    "latitude": 12.987423,
+    "longitude": 79.973043,
+    "entrance_latitude": 12.987307,
+    "entrance_longitude": 79.972913,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.97274,
+            12.9876
+          ],
+          [
+            79.9729234,
+            12.987684
+          ],
+          [
+            79.9730337,
+            12.9875588
+          ],
+          [
+            79.9730791,
+            12.9875501
+          ],
+          [
+            79.9730743,
+            12.9874213
+          ],
+          [
+            79.9730604,
+            12.9872884
+          ],
+          [
+            79.9730112,
+            12.9872945
+          ],
+          [
+            79.9729127,
+            12.9873066
+          ],
+          [
+            79.9729112,
+            12.987394
+          ],
+          [
+            79.9728287,
+            12.9873958
+          ],
+          [
+            79.9727492,
+            12.987484
+          ],
+          [
+            79.9726855,
+            12.9875546
+          ],
+          [
+            79.97274,
+            12.9876
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.717906",
+    "updated_at": "2026-09-18 16:47:40.717906"
+  },
+  {
+    "id": 10,
+    "campus_id": 2,
+    "name": "Mechanical Engineering Block",
+    "code": "MEC",
+    "description": "Department of Mechanical Engineering, Thermal Engineering, and Dynamics Labs.",
+    "latitude": 12.987799,
+    "longitude": 79.972741,
+    "entrance_latitude": 12.987716,
+    "entrance_longitude": 79.972746,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9726841,
+            12.9876602
+          ],
+          [
+            79.9726213,
+            12.987662
+          ],
+          [
+            79.9726235,
+            12.9879128
+          ],
+          [
+            79.9727574,
+            12.9879093
+          ],
+          [
+            79.9728958,
+            12.9879056
+          ],
+          [
+            79.9728954,
+            12.9877158
+          ],
+          [
+            79.9729234,
+            12.987684
+          ],
+          [
+            79.97274,
+            12.9876
+          ],
+          [
+            79.9726841,
+            12.9876602
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.717906",
+    "updated_at": "2026-09-18 16:47:40.717906"
+  },
+  {
+    "id": 11,
+    "campus_id": 2,
+    "name": "Information Technology Block",
+    "code": "ITB",
+    "description": "Department of Information Technology, Software Engineering, and Multimedia Labs.",
+    "latitude": 12.987086,
+    "longitude": 79.973097,
+    "entrance_latitude": 12.987104,
+    "entrance_longitude": 79.972967,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9730467,
+            12.9871972
+          ],
+          [
+            79.9731149,
+            12.9871947
+          ],
+          [
+            79.9731081,
+            12.9871133
+          ],
+          [
+            79.9732616,
+            12.9871047
+          ],
+          [
+            79.973256,
+            12.9870515
+          ],
+          [
+            79.9732529,
+            12.9870226
+          ],
+          [
+            79.9731292,
+            12.9870301
+          ],
+          [
+            79.9731173,
+            12.9869691
+          ],
+          [
+            79.9730707,
+            12.9869732
+          ],
+          [
+            79.973039,
+            12.986976
+          ],
+          [
+            79.9730503,
+            12.9871013
+          ],
+          [
+            79.9729672,
+            12.9871044
+          ],
+          [
+            79.9729704,
+            12.9871566
+          ],
+          [
+            79.9729758,
+            12.9872034
+          ],
+          [
+            79.9730467,
+            12.9871972
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.718932",
+    "updated_at": "2026-09-18 16:47:40.718932"
+  },
+  {
+    "id": 12,
+    "campus_id": 2,
+    "name": "Electronics & Communication Block",
+    "code": "ECE",
+    "description": "Department of ECE, Embedded Systems, Signal Processing, and VLSI Design.",
+    "latitude": 12.987431,
+    "longitude": 79.972372,
+    "entrance_latitude": 12.987346,
+    "entrance_longitude": 79.972404,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9722192,
+            12.9876046
+          ],
+          [
+            79.9722168,
+            12.9874789
+          ],
+          [
+            79.9722143,
+            12.9873488
+          ],
+          [
+            79.972404,
+            12.9873455
+          ],
+          [
+            79.97245,
+            12.98742
+          ],
+          [
+            79.9725261,
+            12.9875105
+          ],
+          [
+            79.9725245,
+            12.987598
+          ],
+          [
+            79.9722192,
+            12.9876046
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.718932",
+    "updated_at": "2026-09-18 16:47:40.718932"
+  },
+  {
+    "id": 13,
+    "campus_id": 2,
+    "name": "MCA Block",
+    "code": "MCA",
+    "description": "Department of Master of Computer Applications and Advanced Computing Labs.",
+    "latitude": 12.98723,
+    "longitude": 79.972578,
+    "entrance_latitude": 12.987249,
+    "entrance_longitude": 79.972489,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.972404,
+            12.9873455
+          ],
+          [
+            79.9724895,
+            12.9872488
+          ],
+          [
+            79.9725427,
+            12.9871887
+          ],
+          [
+            79.97264,
+            12.9872448
+          ],
+          [
+            79.9727522,
+            12.9873504
+          ],
+          [
+            79.9726875,
+            12.9874219
+          ],
+          [
+            79.9726087,
+            12.9875089
+          ],
+          [
+            79.9725261,
+            12.9875105
+          ],
+          [
+            79.97245,
+            12.98742
+          ],
+          [
+            79.972404,
+            12.9873455
+          ]
+        ]
+      ]
+    },
+    "floors": 2,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.718932",
+    "updated_at": "2026-09-18 16:47:40.718932"
+  },
+  {
+    "id": 14,
+    "campus_id": 2,
+    "name": "Applied Science & Humanities",
+    "code": "ASH",
+    "description": "Physics, Chemistry, Mathematics Departments, and First Year Lecture Halls.",
+    "latitude": 12.987121,
+    "longitude": 79.972681,
+    "entrance_latitude": 12.986996,
+    "entrance_longitude": 79.972679,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9725427,
+            12.9871887
+          ],
+          [
+            79.9725427,
+            12.986999
+          ],
+          [
+            79.9726794,
+            12.9869957
+          ],
+          [
+            79.9728149,
+            12.9869924
+          ],
+          [
+            79.9728164,
+            12.9872071
+          ],
+          [
+            79.9728166,
+            12.9872432
+          ],
+          [
+            79.9727539,
+            12.9872448
+          ],
+          [
+            79.97264,
+            12.9872448
+          ],
+          [
+            79.9725427,
+            12.9871887
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.718932",
+    "updated_at": "2026-09-18 16:47:40.718932"
+  },
+  {
+    "id": 15,
+    "campus_id": 2,
+    "name": "Chemical Engineering Block",
+    "code": "CHE",
+    "description": "Department of Chemical Engineering, Mass Transfer, and Process Labs.",
+    "latitude": 12.987798,
+    "longitude": 79.97225,
+    "entrance_latitude": 12.98768,
+    "entrance_longitude": 79.972369,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9720903,
+            12.9878701
+          ],
+          [
+            79.9720882,
+            12.9877674
+          ],
+          [
+            79.9722267,
+            12.9877636
+          ],
+          [
+            79.9722273,
+            12.987681
+          ],
+          [
+            79.9723693,
+            12.9876803
+          ],
+          [
+            79.9723711,
+            12.9877645
+          ],
+          [
+            79.9723012,
+            12.9877679
+          ],
+          [
+            79.9723058,
+            12.9879124
+          ],
+          [
+            79.972258,
+            12.9879127
+          ],
+          [
+            79.9722574,
+            12.9878639
+          ],
+          [
+            79.9720903,
+            12.9878701
+          ]
+        ]
+      ]
+    },
+    "floors": 2,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.719924",
+    "updated_at": "2026-09-18 16:47:40.719924"
+  },
+  {
+    "id": 16,
+    "campus_id": 2,
+    "name": "Biotechnology Block",
+    "code": "BIO",
+    "description": "Department of Biotechnology, Genetic Engineering, and Bio-processing Labs.",
+    "latitude": 12.987281,
+    "longitude": 79.971484,
+    "entrance_latitude": 12.987355,
+    "entrance_longitude": 79.971437,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9714374,
+            12.9873545
+          ],
+          [
+            79.9714469,
+            12.9874507
+          ],
+          [
+            79.9715564,
+            12.9874525
+          ],
+          [
+            79.9715508,
+            12.9873363
+          ],
+          [
+            79.9716496,
+            12.9873336
+          ],
+          [
+            79.9716521,
+            12.9872648
+          ],
+          [
+            79.9716248,
+            12.9872673
+          ],
+          [
+            79.9716271,
+            12.9871476
+          ],
+          [
+            79.9715175,
+            12.9871588
+          ],
+          [
+            79.9715227,
+            12.9872616
+          ],
+          [
+            79.9714478,
+            12.9872659
+          ],
+          [
+            79.9714384,
+            12.9871663
+          ],
+          [
+            79.9713332,
+            12.9871719
+          ],
+          [
+            79.9713417,
+            12.987244
+          ],
+          [
+            79.971294,
+            12.9872565
+          ],
+          [
+            79.971298,
+            12.987366
+          ],
+          [
+            79.9714374,
+            12.9873545
+          ]
+        ]
+      ]
+    },
+    "floors": 2,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.719924",
+    "updated_at": "2026-09-18 16:47:40.719924"
+  },
+  {
+    "id": 17,
+    "campus_id": 2,
+    "name": "Marine Engineering Block",
+    "code": "MAR",
+    "description": "Department of Marine Engineering, Ship Simulators, and Marine Power Plant Labs.",
+    "latitude": 12.987911,
+    "longitude": 79.97141,
+    "entrance_latitude": 12.987868,
+    "entrance_longitude": 79.971333,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9713181,
+            12.9876171
+          ],
+          [
+            79.9715781,
+            12.9876048
+          ],
+          [
+            79.9716011,
+            12.9880238
+          ],
+          [
+            79.9715016,
+            12.98803
+          ],
+          [
+            79.9714955,
+            12.9879321
+          ],
+          [
+            79.9713579,
+            12.9879382
+          ],
+          [
+            79.9713701,
+            12.9881065
+          ],
+          [
+            79.9712783,
+            12.9881112
+          ],
+          [
+            79.971263,
+            12.9878738
+          ],
+          [
+            79.9713334,
+            12.9878677
+          ],
+          [
+            79.9713181,
+            12.9876171
+          ]
+        ]
+      ]
+    },
+    "floors": 2,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.719924",
+    "updated_at": "2026-09-18 16:47:40.719924"
+  },
+  {
+    "id": 18,
+    "campus_id": 2,
+    "name": "Research & Development Center",
+    "code": "RND",
+    "description": "Innovation Hub, Patent Cell, and Interdisciplinary Research Laboratories.",
+    "latitude": 12.988864,
+    "longitude": 79.971118,
+    "entrance_latitude": 12.988753,
+    "entrance_longitude": 79.970966,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9709779,
+            12.9889894
+          ],
+          [
+            79.9712705,
+            12.9889766
+          ],
+          [
+            79.9712569,
+            12.9887381
+          ],
+          [
+            79.9709661,
+            12.9887531
+          ],
+          [
+            79.9709779,
+            12.9889894
+          ]
+        ]
+      ]
+    },
+    "floors": 2,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.719924",
+    "updated_at": "2026-09-18 16:47:40.719924"
+  },
+  {
+    "id": 19,
+    "campus_id": 2,
+    "name": "Multi Purpose Hall",
+    "code": "MPH",
+    "description": "Indoor Auditorium, Cultural Arena, and Convocation Hall.",
+    "latitude": 12.989451,
+    "longitude": 79.971463,
+    "entrance_latitude": 12.989317,
+    "entrance_longitude": 79.971174,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9711738,
+            12.9893166
+          ],
+          [
+            79.971204,
+            12.9896321
+          ],
+          [
+            79.97175,
+            12.9895859
+          ],
+          [
+            79.9717259,
+            12.9892702
+          ],
+          [
+            79.9711738,
+            12.9893166
+          ]
+        ]
+      ]
+    },
+    "floors": 2,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.720921",
+    "updated_at": "2026-09-18 16:47:40.720921"
+  },
+  {
+    "id": 20,
+    "campus_id": 2,
+    "name": "Class Room Block 1 (CRB 1)",
+    "code": "CRB1",
+    "description": "Lecture Halls, Seminar Rooms, and Tutorial Classrooms.",
+    "latitude": 12.986636,
+    "longitude": 79.972398,
+    "entrance_latitude": 12.986628,
+    "entrance_longitude": 79.972446,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9723407,
+            12.9865213
+          ],
+          [
+            79.9724396,
+            12.9865224
+          ],
+          [
+            79.972497,
+            12.9865747
+          ],
+          [
+            79.9724456,
+            12.9866283
+          ],
+          [
+            79.9724985,
+            12.9866797
+          ],
+          [
+            79.9724272,
+            12.9867534
+          ],
+          [
+            79.9724175,
+            12.9867452
+          ],
+          [
+            79.9723718,
+            12.9867063
+          ],
+          [
+            79.9722571,
+            12.9866707
+          ],
+          [
+            79.9723407,
+            12.9865213
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.720921",
+    "updated_at": "2026-09-18 16:47:40.720921"
+  },
+  {
+    "id": 21,
+    "campus_id": 2,
+    "name": "Class Room Block 2 (CRB 2)",
+    "code": "CRB2",
+    "description": "Lecture Halls, Smart Classrooms, and Faculty Rooms.",
+    "latitude": 12.986758,
+    "longitude": 79.972595,
+    "entrance_latitude": 12.986803,
+    "entrance_longitude": 79.972587,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9726043,
+            12.9868266
+          ],
+          [
+            79.9726572,
+            12.9868769
+          ],
+          [
+            79.9727314,
+            12.9868028
+          ],
+          [
+            79.9726745,
+            12.9867525
+          ],
+          [
+            79.9727261,
+            12.9866982
+          ],
+          [
+            79.9726586,
+            12.9866334
+          ],
+          [
+            79.972607,
+            12.9866844
+          ],
+          [
+            79.9725527,
+            12.9866347
+          ],
+          [
+            79.9724825,
+            12.9867075
+          ],
+          [
+            79.9725288,
+            12.9867485
+          ],
+          [
+            79.9724841,
+            12.9867978
+          ],
+          [
+            79.9724759,
+            12.9868068
+          ],
+          [
+            79.9725553,
+            12.9868822
+          ],
+          [
+            79.9726043,
+            12.9868266
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.720921",
+    "updated_at": "2026-09-18 16:47:40.720921"
+  },
+  {
+    "id": 22,
+    "campus_id": 2,
+    "name": "Class Room Block 3 (CRB 3)",
+    "code": "CRB3",
+    "description": "Lecture Halls and Department Classrooms.",
+    "latitude": 12.988049,
+    "longitude": 79.972695,
+    "entrance_latitude": 12.988089,
+    "entrance_longitude": 79.972828,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9727017,
+            12.9881208
+          ],
+          [
+            79.9727597,
+            12.988167
+          ],
+          [
+            79.972828,
+            12.9880894
+          ],
+          [
+            79.9727659,
+            12.9880436
+          ],
+          [
+            79.9728132,
+            12.9879869
+          ],
+          [
+            79.9727607,
+            12.9879446
+          ],
+          [
+            79.9727391,
+            12.9879273
+          ],
+          [
+            79.9726916,
+            12.9879807
+          ],
+          [
+            79.9726322,
+            12.9879352
+          ],
+          [
+            79.9725679,
+            12.9880112
+          ],
+          [
+            79.9726183,
+            12.9880487
+          ],
+          [
+            79.9725701,
+            12.9881092
+          ],
+          [
+            79.9726199,
+            12.9881488
+          ],
+          [
+            79.9726572,
+            12.9881785
+          ],
+          [
+            79.9727017,
+            12.9881208
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.720921",
+    "updated_at": "2026-09-18 16:47:40.720921"
+  },
+  {
+    "id": 23,
+    "campus_id": 2,
+    "name": "Class Room Block 4 (CRB 4)",
+    "code": "CRB4",
+    "description": "Multi-storey Class Room Block 4 with Modern Lecture Theatres.",
+    "latitude": 12.98738,
+    "longitude": 79.973284,
+    "entrance_latitude": 12.987431,
+    "entrance_longitude": 79.973234,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9732335,
+            12.9874314
+          ],
+          [
+            79.9732361,
+            12.9875044
+          ],
+          [
+            79.973341,
+            12.9875032
+          ],
+          [
+            79.9733354,
+            12.9874275
+          ],
+          [
+            79.9734103,
+            12.9874248
+          ],
+          [
+            79.9734074,
+            12.9873312
+          ],
+          [
+            79.9733349,
+            12.9873316
+          ],
+          [
+            79.9733308,
+            12.9872581
+          ],
+          [
+            79.9732297,
+            12.9872611
+          ],
+          [
+            79.9732341,
+            12.9873228
+          ],
+          [
+            79.9731556,
+            12.9873274
+          ],
+          [
+            79.9731596,
+            12.9874369
+          ],
+          [
+            79.9732335,
+            12.9874314
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.721922",
+    "updated_at": "2026-09-18 16:47:40.721922"
+  },
+  {
+    "id": 24,
+    "campus_id": 2,
+    "name": "Class Room Block 5 (CRB 5)",
+    "code": "CRB5",
+    "description": "Class Room Block 5 and Examination Halls.",
+    "latitude": 12.988256,
+    "longitude": 79.974363,
+    "entrance_latitude": 12.988362,
+    "entrance_longitude": 79.974016,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9740161,
+            12.9883618
+          ],
+          [
+            79.9743192,
+            12.9886255
+          ],
+          [
+            79.9747318,
+            12.9881524
+          ],
+          [
+            79.9743861,
+            12.9878859
+          ],
+          [
+            79.9740161,
+            12.9883618
+          ]
+        ]
+      ]
+    },
+    "floors": 2,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.721922",
+    "updated_at": "2026-09-18 16:47:40.721922"
+  },
+  {
+    "id": 25,
+    "campus_id": 2,
+    "name": "Central Cafeteria",
+    "code": "CAF",
+    "description": "Campus Dining Hall, Student Cafeteria, Coffee and Refreshment Counters.",
+    "latitude": 12.986477,
+    "longitude": 79.972295,
+    "entrance_latitude": 12.986491,
+    "entrance_longitude": 79.972305,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9722155,
+            12.9865374
+          ],
+          [
+            79.9721087,
+            12.9864527
+          ],
+          [
+            79.9721096,
+            12.9863729
+          ],
+          [
+            79.972196,
+            12.9863757
+          ],
+          [
+            79.972197,
+            12.986277
+          ],
+          [
+            79.9722844,
+            12.9862798
+          ],
+          [
+            79.97229,
+            12.9863785
+          ],
+          [
+            79.9723492,
+            12.986433
+          ],
+          [
+            79.972305,
+            12.9864912
+          ],
+          [
+            79.9722155,
+            12.9865374
+          ]
+        ]
+      ]
+    },
+    "floors": 1,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.721922",
+    "updated_at": "2026-09-18 16:47:40.721922"
+  },
+  {
+    "id": 26,
+    "campus_id": 2,
+    "name": "Central Workshops",
+    "code": "WKS",
+    "description": "Machine Shop, Foundry, Welding Shop, Fitting, Carpentry, and CNC Labs.",
+    "latitude": 12.9882,
+    "longitude": 79.9716,
+    "entrance_latitude": 12.988265,
+    "entrance_longitude": 79.971876,
+    "footprint": {
+      "type": "MultiPolygon",
+      "coordinates": [
+        [
+          [
+            [
+              79.9714376,
+              12.9888805
+            ],
+            [
+              79.9719078,
+              12.9888561
+            ],
+            [
+              79.9718757,
+              12.9882649
+            ],
+            [
+              79.9714004,
+              12.9882914
+            ],
+            [
+              79.9714376,
+              12.9888805
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              79.9720721,
+              12.9882463
+            ],
+            [
+              79.9720946,
+              12.988811
+            ],
+            [
+              79.9725554,
+              12.988784
+            ],
+            [
+              79.9725315,
+              12.9882224
+            ],
+            [
+              79.9720721,
+              12.9882463
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              79.9709633,
+              12.9876262
+            ],
+            [
+              79.971208,
+              12.9876171
+            ],
+            [
+              79.971243,
+              12.9882043
+            ],
+            [
+              79.9709997,
+              12.9882196
+            ],
+            [
+              79.9709633,
+              12.9876262
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              79.9717091,
+              12.9881044
+            ],
+            [
+              79.9720137,
+              12.9880895
+            ],
+            [
+              79.9720083,
+              12.9880049
+            ],
+            [
+              79.9719583,
+              12.9880081
+            ],
+            [
+              79.9719391,
+              12.9876358
+            ],
+            [
+              79.9717368,
+              12.9876422
+            ],
+            [
+              79.9717571,
+              12.9880196
+            ],
+            [
+              79.9717069,
+              12.9880235
+            ],
+            [
+              79.9717091,
+              12.9881044
+            ]
+          ]
+        ]
+      ]
+    },
+    "floors": 1,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.722922",
+    "updated_at": "2026-09-18 16:47:40.722922"
+  },
+  {
+    "id": 27,
+    "campus_id": 2,
+    "name": "Open Air Theatre",
+    "code": "OAT",
+    "description": "Campus Open Air Amphitheatre for Cultural Events and Student Gatherings.",
+    "latitude": 12.987196,
+    "longitude": 79.971087,
+    "entrance_latitude": 12.987188,
+    "entrance_longitude": 79.971016,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9709308,
+            12.9873007
+          ],
+          [
+            79.9712223,
+            12.9873284
+          ],
+          [
+            79.9712435,
+            12.9870904
+          ],
+          [
+            79.9709534,
+            12.9870652
+          ],
+          [
+            79.9709308,
+            12.9873007
+          ]
+        ]
+      ]
+    },
+    "floors": 1,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.722922",
+    "updated_at": "2026-09-18 16:47:40.722922"
+  },
+  {
+    "id": 28,
+    "campus_id": 2,
+    "name": "Mens Hostel 1",
+    "code": "MH1",
+    "description": "Mens Residence Block 1.",
+    "latitude": 12.988558,
+    "longitude": 79.970229,
+    "entrance_latitude": 12.988559,
+    "entrance_longitude": 79.970349,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9703454,
+            12.988426
+          ],
+          [
+            79.9703494,
+            12.9885592
+          ],
+          [
+            79.970353,
+            12.9886809
+          ],
+          [
+            79.9701132,
+            12.9886885
+          ],
+          [
+            79.9701095,
+            12.9885604
+          ],
+          [
+            79.9701059,
+            12.9884324
+          ],
+          [
+            79.9703454,
+            12.988426
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.723463",
+    "updated_at": "2026-09-18 16:47:40.723463"
+  },
+  {
+    "id": 29,
+    "campus_id": 2,
+    "name": "Mens Hostel 2",
+    "code": "MH2",
+    "description": "Mens Residence Block 2.",
+    "latitude": 12.988819,
+    "longitude": 79.970523,
+    "entrance_latitude": 12.988699,
+    "entrance_longitude": 79.970513,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9706574,
+            12.9889358
+          ],
+          [
+            79.9705181,
+            12.9889388
+          ],
+          [
+            79.9704024,
+            12.9889413
+          ],
+          [
+            79.9703968,
+            12.9887014
+          ],
+          [
+            79.9705129,
+            12.988699
+          ],
+          [
+            79.9706531,
+            12.9886962
+          ],
+          [
+            79.9706574,
+            12.9889358
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.723463",
+    "updated_at": "2026-09-18 16:47:40.723463"
+  },
+  {
+    "id": 30,
+    "campus_id": 2,
+    "name": "Mens Hostel 3",
+    "code": "MH3",
+    "description": "Mens Residence Block 3.",
+    "latitude": 12.988832,
+    "longitude": 79.969924,
+    "entrance_latitude": 12.988827,
+    "entrance_longitude": 79.9699,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9697959,
+            12.9887133
+          ],
+          [
+            79.9699201,
+            12.9887117
+          ],
+          [
+            79.9700509,
+            12.9887101
+          ],
+          [
+            79.9700544,
+            12.98895
+          ],
+          [
+            79.9699255,
+            12.9889515
+          ],
+          [
+            79.9697981,
+            12.9889529
+          ],
+          [
+            79.9697959,
+            12.9887133
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.723463",
+    "updated_at": "2026-09-18 16:47:40.723463"
+  },
+  {
+    "id": 31,
+    "campus_id": 2,
+    "name": "Mens Hostel 4",
+    "code": "MH4",
+    "description": "Mens Residence Block 4.",
+    "latitude": 12.989118,
+    "longitude": 79.97025,
+    "entrance_latitude": 12.989115,
+    "entrance_longitude": 79.97037,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9701328,
+            12.9892494
+          ],
+          [
+            79.97013,
+            12.9891172
+          ],
+          [
+            79.9701274,
+            12.9889944
+          ],
+          [
+            79.9703674,
+            12.988989
+          ],
+          [
+            79.9703699,
+            12.9891146
+          ],
+          [
+            79.9703724,
+            12.9892452
+          ],
+          [
+            79.9701328,
+            12.9892494
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.723463",
+    "updated_at": "2026-09-18 16:47:40.723463"
+  },
+  {
+    "id": 32,
+    "campus_id": 2,
+    "name": "Mens Hostel 5",
+    "code": "MH5",
+    "description": "Mens Residence Block 5.",
+    "latitude": 12.989383,
+    "longitude": 79.970532,
+    "entrance_latitude": 12.989261,
+    "entrance_longitude": 79.970526,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9706823,
+            12.9895011
+          ],
+          [
+            79.970533,
+            12.9895039
+          ],
+          [
+            79.97039,
+            12.9895066
+          ],
+          [
+            79.9703844,
+            12.9892667
+          ],
+          [
+            79.9705263,
+            12.9892613
+          ],
+          [
+            79.970674,
+            12.9892556
+          ],
+          [
+            79.9706823,
+            12.9895011
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.724455",
+    "updated_at": "2026-09-18 16:47:40.724455"
+  },
+  {
+    "id": 33,
+    "campus_id": 2,
+    "name": "Mens Mess",
+    "code": "MM",
+    "description": "Hostel Dining Mess for Resident Students.",
+    "latitude": 12.988474,
+    "longitude": 79.969808,
+    "entrance_latitude": 12.988512,
+    "entrance_longitude": 79.96991,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9697598,
+            12.9885697
+          ],
+          [
+            79.9698621,
+            12.9885712
+          ],
+          [
+            79.96991,
+            12.9885121
+          ],
+          [
+            79.9699539,
+            12.9884578
+          ],
+          [
+            79.9699439,
+            12.9883582
+          ],
+          [
+            79.9696404,
+            12.9883657
+          ],
+          [
+            79.9696429,
+            12.9884777
+          ],
+          [
+            79.9697548,
+            12.9884777
+          ],
+          [
+            79.9697598,
+            12.9885697
+          ]
+        ]
+      ]
+    },
+    "floors": 1,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.724455",
+    "updated_at": "2026-09-18 16:47:40.724455"
+  },
+  {
+    "id": 34,
+    "campus_id": 2,
+    "name": "Ladies Hostel 1",
+    "code": "LH1",
+    "description": "Ladies Residence Block 1.",
+    "latitude": 12.987498,
+    "longitude": 79.969348,
+    "entrance_latitude": 12.987363,
+    "entrance_longitude": 79.969528,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9692191,
+            12.9873794
+          ],
+          [
+            79.9694742,
+            12.9873761
+          ],
+          [
+            79.9694776,
+            12.9876161
+          ],
+          [
+            79.9692214,
+            12.987619
+          ],
+          [
+            79.9692191,
+            12.9873794
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.724455",
+    "updated_at": "2026-09-18 16:47:40.724455"
+  },
+  {
+    "id": 35,
+    "campus_id": 2,
+    "name": "Ladies Hostel 2",
+    "code": "LH2",
+    "description": "Ladies Residence Block 2.",
+    "latitude": 12.986864,
+    "longitude": 79.969331,
+    "entrance_latitude": 12.986854,
+    "entrance_longitude": 79.969343,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.9692021,
+            12.9867458
+          ],
+          [
+            79.9694571,
+            12.9867425
+          ],
+          [
+            79.9694606,
+            12.9869825
+          ],
+          [
+            79.9692044,
+            12.9869854
+          ],
+          [
+            79.9692021,
+            12.9867458
+          ]
+        ]
+      ]
+    },
+    "floors": 3,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.724455",
+    "updated_at": "2026-09-18 16:47:40.724455"
+  },
+  {
+    "id": 36,
+    "campus_id": 2,
+    "name": "Campus Medical Center / SVCE Clinic",
+    "code": "CLINIC",
+    "description": "Campus Physician, First Aid, and Emergency Ambulatory Unit.",
+    "latitude": 12.988116,
+    "longitude": 79.970407,
+    "entrance_latitude": 12.988116,
+    "entrance_longitude": 79.970407,
+    "footprint": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            79.97032,
+            12.98806
+          ],
+          [
+            79.97049,
+            12.98806
+          ],
+          [
+            79.97049,
+            12.98817
+          ],
+          [
+            79.97032,
+            12.98817
+          ],
+          [
+            79.97032,
+            12.98806
+          ]
+        ]
+      ]
+    },
+    "floors": 1,
+    "accessible": true,
+    "created_at": "2026-09-18 16:47:40.725456",
+    "updated_at": "2026-09-18 16:47:40.725456"
+  }
+]

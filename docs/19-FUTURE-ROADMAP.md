@@ -33,4 +33,4 @@ Because browser GPS attenuates inside buildings, future phases will introduce ve
 ---
 
 ## 5. Natural Language & Voice Assistance
-- Natural language query parser mapping conversational prompts ("Where can I print my thesis near the library?") to structured database queries and nearest facility routing without inventing non-existent locations.
+- Natural language query parser mapping conversational prompts ("Where can I print my thesis near the library?") to searches over the bundled campus JSON and nearest-facility routing without inventing non-existent locations.

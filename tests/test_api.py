@@ -72,6 +72,37 @@ def test_routes_api_success(client):
     assert "geometry" in route
 
 
+def test_svce_map_search_and_route(client):
+    """SVCE JSON data powers campus map, search, and routable coordinates."""
+    campuses = client.get("/api/v1/campuses").get_json()["data"]
+    assert any(campus["id"] == 2 for campus in campuses)
+
+    map_res = client.get("/api/v1/campuses/2/map-data")
+    assert map_res.status_code == 200
+    map_data = map_res.get_json()["data"]
+    assert map_data["type"] == "FeatureCollection"
+    walkways = [feature for feature in map_data["features"] if feature["properties"].get("layer") == "walkway"]
+    assert walkways
+
+    search_res = client.get("/api/v1/search?q=Library&campus_id=2")
+    assert search_res.status_code == 200
+    results = search_res.get_json()["data"]
+    assert any("Library" in result["name"] for result in results)
+    destination = next(result for result in results if result["type"] == "facility")
+
+    route_res = client.post("/api/v1/routes", json={
+        "campus_id": 2,
+        "origin": {"lat": 12.9855, "lng": 79.9718},
+        "destination": {"type": destination["type"], "id": destination["id"]},
+        "accessible": False,
+    })
+    assert route_res.status_code == 200
+    route = route_res.get_json()["data"]["route"]
+    coordinates = route["geometry"]["coordinates"]
+    assert len(coordinates) >= 2
+    assert all(len(point) == 2 and all(isinstance(value, (int, float)) for value in point) for point in coordinates)
+
+
 def test_routes_api_invalid_coords(client):
     """POST /api/v1/routes returns standard error envelope on invalid coordinates."""
     payload = {

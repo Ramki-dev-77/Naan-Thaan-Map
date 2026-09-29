@@ -43,17 +43,16 @@
                  │  │  - AdminAuditService        │          │
                  │  └──────────────┬──────────────┘          │
                  └─────────────────┼─────────────────────────┘
-                                   │ Private VPC Peering
+                                   │ Bundled, read-only JSON
                                    ▼
                  ┌───────────────────────────────────────────┐
-                 │        Data Tier (Cloud SQL PostgreSQL)   │
-                 │               PostGIS 3.3+                │
+                 │         Static Campus Data (app/data)      │
                  │                                           │
                  │  - Campuses, Buildings, Footprints (Poly) │
                  │  - Rooms, Facilities, Entrances (Point)   │
                  │  - NavigationNodes (Point)                │
                  │  - NavigationEdges (LineString + Weights) │
-                 │  - Spatial GIST & Trigram GIN Indexes     │
+                 │  - Loaded in memory; no runtime writes    │
                  └───────────────────────────────────────────┘
 ```
 
@@ -74,11 +73,11 @@
 
 ### 2.3 Service Layer
 - **`RoutingService`**: Graph traversal engine executing A* search on nodes and edges with distance calculations, barrier checking, and accessibility filters (`accessible=True`).
-- **`SearchService`**: PostgreSQL trigram/tsvector queries ranking results by exact match, prefix match, and category relevance.
+- **`SearchService`**: In-memory fuzzy matching ranks results by exact match, prefix match, and category relevance.
 - **`LocationService`**: Coordinate snapping to nearest pedestrian node within radius thresholds.
 - **`AuditService`**: Asynchronous/transactional logging of administrative actions into `AuditLog`.
 
-### 2.4 Data Tier (PostgreSQL + PostGIS)
-- Stores spatial geometries in WGS84 (SRID 4326).
-- GIST spatial indexes on `location`, `footprint`, and `boundary` columns.
-- Trigram GIN indexes on search text attributes for sub-second text matching.
+### 2.4 Static Data Tier
+- Bundled JSON files under `app/data/` are loaded into process memory at startup.
+- The SVCE graph in `svce_network.json` supplies routing nodes and edges to the existing A* implementation.
+- Runtime admin mutations are process-local and are not durable; edit JSON and redeploy to persist data changes.

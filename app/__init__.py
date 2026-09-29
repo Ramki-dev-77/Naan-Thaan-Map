@@ -1,12 +1,14 @@
 """
 Campus Navigation System — Application Factory
-Initializes extensions, registers blueprints, security middleware, and health probes.
+Initializes extensions, loads static data store, registers blueprints, security middleware, and health probes.
+Database-free: powered by static JSON files in app/data/.
 """
 import time
 import uuid
 from flask import Flask, jsonify, request, g
-from app.config import get_config
-from app.extensions import db, migrate, limiter, csrf
+from app.config import BASE_DIR, get_config
+from app.extensions import limiter, csrf
+from app.data_store import data_store
 from app.utils.logging import setup_logging
 from app.utils.errors import register_error_handlers
 from app.utils.security import apply_security_headers
@@ -14,21 +16,29 @@ from app.utils.security import apply_security_headers
 
 def create_app(config_class=None):
     """Application factory for Campus Navigation System."""
-    app = Flask(__name__)
+    app = Flask(
+        __name__,
+        static_folder=str(BASE_DIR / "public" / "static"),
+        static_url_path="/static",
+    )
 
     # Load configuration
     if config_class is None:
         config_class = get_config()
     app.config.from_object(config_class)
 
+    if app.config.get("APP_ENV") == "production" and not app.config.get("SECRET_KEY"):
+        raise RuntimeError("SECRET_KEY must be set when APP_ENV=production.")
+
     # Configure structured logging
     setup_logging(app)
 
     # Initialize extensions
-    db.init_app(app)
-    migrate.init_app(app, db)
     limiter.init_app(app)
     csrf.init_app(app)
+
+    # Initialize in-memory data store from static JSON files
+    data_store.init_app(app)
 
     # Register error handlers
     register_error_handlers(app)
@@ -62,18 +72,25 @@ def create_app(config_class=None):
 
     @app.route("/ready", methods=["GET"])
     def readiness_check():
-        """Readiness probe: verifies database connectivity."""
+        """Readiness probe: verifies in-memory data store is loaded and ready."""
         try:
-            db.session.execute(db.text("SELECT 1"))
-            return jsonify({
-                "status": "ready",
-                "database": "connected"
-            }), 200
+            if data_store.is_ready():
+                return jsonify({
+                    "status": "ready",
+                    "data_source": "static_json",
+                    "campuses_count": len(data_store._campuses)
+                }), 200
+            else:
+                return jsonify({
+                    "status": "not_ready",
+                    "data_source": "static_json",
+                    "error": "Data store is not initialized"
+                }), 503
         except Exception as e:
             app.logger.error(f"Readiness probe failure: {str(e)}")
             return jsonify({
                 "status": "not_ready",
-                "database": "disconnected",
+                "data_source": "static_json",
                 "error": str(e)
             }), 503
 

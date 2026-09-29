@@ -1,27 +1,50 @@
 """
 Campus Navigation System — Audit Log Model
-Immutable event log recording all state-changing administrative operations.
+Immutable event log recording administrative operations.
+Zero-database in-memory model backed by data_store.
 """
 from datetime import datetime, timezone
 import json
-from app.extensions import db
+from app.data_store import data_store, ColumnField
 
 
-class AuditLog(db.Model):
-    __tablename__ = "audit_logs"
+class _ModelMeta(type):
+    @property
+    def query(cls):
+        return data_store.get_query(cls)
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    admin_id = db.Column(db.Integer, db.ForeignKey("admin_users.id", ondelete="SET NULL"), nullable=True, index=True)
-    action = db.Column(db.String(100), nullable=False, index=True)  # e.g., 'CREATE_BUILDING', 'UPDATE_NODE'
-    entity_type = db.Column(db.String(50), nullable=False, index=True) # e.g., 'Building', 'Room', 'NavigationEdge'
-    entity_id = db.Column(db.Integer, nullable=True)
-    
-    # JSON metadata payload (stored as Text for SQLite / JSONB in PostgreSQL)
-    metadata_json = db.Column(db.Text, nullable=True)
-    ip_address = db.Column(db.String(50), nullable=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
-    admin = db.relationship("AdminUser", back_populates="audit_logs")
+class AuditLog(metaclass=_ModelMeta):
+    id = ColumnField("AuditLog", "id")
+    admin_id = ColumnField("AuditLog", "admin_id")
+    action = ColumnField("AuditLog", "action")
+    created_at = ColumnField("AuditLog", "created_at")
+
+    def __init__(
+        self,
+        id: int = None,
+        admin_id: int = None,
+        action: str = "",
+        entity_type: str = "",
+        entity_id: int = None,
+        metadata_json: str = None,
+        ip_address: str = None,
+        created_at: str = None,
+        **kwargs
+    ):
+        self.id = int(id) if id is not None else None
+        self.admin_id = int(admin_id) if admin_id is not None else None
+        self.action = action
+        self.entity_type = entity_type
+        self.entity_id = int(entity_id) if entity_id is not None else None
+        self.metadata_json = metadata_json
+        self.ip_address = ip_address
+        self.created_at = created_at or datetime.now(timezone.utc).isoformat()
+        self.admin = None
+
+    @classmethod
+    def get(cls, log_id: int):
+        return data_store.get_by_id(cls, log_id)
 
     def to_dict(self):
         meta = None
@@ -40,5 +63,8 @@ class AuditLog(db.Model):
             "entity_id": self.entity_id,
             "metadata": meta,
             "ip_address": self.ip_address,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "created_at": self.created_at,
         }
+
+    def __repr__(self):
+        return f"<AuditLog id={self.id} action='{self.action}'>"

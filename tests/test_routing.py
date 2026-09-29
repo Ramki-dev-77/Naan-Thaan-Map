@@ -111,7 +111,7 @@ def test_multi_route_options_and_differences(app_ctx):
     if not campus:
         campus = Campus.query.filter_by(slug="demo-engineering-campus").first()
 
-    room = Room.query.filter_by(room_number="CS-LAB-1").first()
+    room = next((r for r in Room.query.filter_by(room_number="CS-LAB-1").all() if r.building and r.building.campus_id == campus.id), None)
     assert room is not None
 
     origin_coords = {"lat": campus.latitude - 0.001, "lng": campus.longitude}

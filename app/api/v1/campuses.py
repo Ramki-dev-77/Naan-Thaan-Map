@@ -1,10 +1,10 @@
 """
 Campus Navigation System — Campuses API
 Handles campus listings, metadata, and unified GeoJSON map datasets.
+Zero-database implementation reading from in-memory data store.
 """
 from flask import jsonify, g
 from app.api.v1 import api_v1_bp
-from app.extensions import db
 from app.models.campus import Campus
 from app.services.location_service import LocationService
 from app.utils.errors import AppError
@@ -24,7 +24,7 @@ def get_campuses():
 @api_v1_bp.route("/campuses/<int:campus_id>", methods=["GET"])
 def get_campus_detail(campus_id: int):
     """Retrieve detailed metadata and boundary for a specific campus."""
-    campus = db.session.get(Campus, campus_id)
+    campus = Campus.get(campus_id)
     if not campus:
         raise AppError("Campus not found.", code="CAMPUS_NOT_FOUND", status_code=404)
 

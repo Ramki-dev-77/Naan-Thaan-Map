@@ -1,40 +1,59 @@
 """
 Campus Navigation System — Room Model
 Represents classrooms, lecture halls, faculty offices, laboratories, and departments.
+Zero-database in-memory model backed by data_store.
 """
 from datetime import datetime, timezone
-from app.extensions import db
-from app.models.spatial import SpatialPoint
+from app.data_store import data_store, ColumnField
 
 
-class Room(db.Model):
-    __tablename__ = "rooms"
+class _ModelMeta(type):
+    @property
+    def query(cls):
+        return data_store.get_query(cls)
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    building_id = db.Column(db.Integer, db.ForeignKey("buildings.id", ondelete="CASCADE"), nullable=False, index=True)
-    room_number = db.Column(db.String(50), nullable=False, index=True)  # e.g., "CS-101", "204"
-    name = db.Column(db.String(255), nullable=False, index=True)         # e.g., "AI & Machine Learning Lab"
-    floor = db.Column(db.Integer, default=0, nullable=False)            # 0 = Ground, 1 = 1st floor
-    department = db.Column(db.String(150), nullable=True, index=True)   # e.g., "Computer Science"
-    description = db.Column(db.Text, nullable=True)
 
-    # Optional specific doorway coordinates
-    latitude = db.Column(db.Float, nullable=True)
-    longitude = db.Column(db.Float, nullable=True)
-    location = db.Column(SpatialPoint, nullable=True)
+class Room(metaclass=_ModelMeta):
+    id = ColumnField("Room", "id")
+    building_id = ColumnField("Room", "building_id")
+    room_number = ColumnField("Room", "room_number")
+    name = ColumnField("Room", "name")
+    department = ColumnField("Room", "department")
 
-    # Associated navigation node (doorway anchor)
-    node_id = db.Column(db.Integer, db.ForeignKey("navigation_nodes.id", ondelete="SET NULL"), nullable=True)
+    def __init__(
+        self,
+        id: int = None,
+        building_id: int = None,
+        room_number: str = "",
+        name: str = "",
+        floor: int = 0,
+        department: str = "",
+        description: str = "",
+        latitude: float = None,
+        longitude: float = None,
+        node_id: int = None,
+        created_at: str = None,
+        **kwargs
+    ):
+        self.id = int(id) if id is not None else None
+        self.building_id = int(building_id) if building_id is not None else None
+        self.room_number = room_number
+        self.name = name
+        self.floor = int(floor) if floor is not None else 0
+        self.department = department
+        self.description = description
+        self.latitude = float(latitude) if latitude is not None else None
+        self.longitude = float(longitude) if longitude is not None else None
+        self.node_id = int(node_id) if node_id is not None else None
+        self.created_at = created_at or datetime.now(timezone.utc).isoformat()
 
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+        # Relationships
+        self.building = None
+        self.door_node = None
 
-    # Relationships
-    building = db.relationship("Building", back_populates="rooms")
-    door_node = db.relationship("NavigationNode", foreign_keys=[node_id])
-
-    __table_args__ = (
-        db.UniqueConstraint("building_id", "room_number", name="uq_building_room_number"),
-    )
+    @classmethod
+    def get(cls, room_id: int):
+        return data_store.get_by_id(cls, room_id)
 
     def to_dict(self):
         return {
@@ -53,3 +72,6 @@ class Room(db.Model):
             },
             "node_id": self.node_id,
         }
+
+    def __repr__(self):
+        return f"<Room id={self.id} num='{self.room_number}' name='{self.name}'>"

@@ -6,11 +6,11 @@
 app/
 ├── __init__.py           # Application Factory: create_app()
 ├── config.py             # Environment configurations (Development, Production, Testing)
-├── extensions.py         # SQLAlchemy, Migrate, Limiter, CSRF instances
-├── commands/             # Flask CLI commands (seed-demo, create-admin)
+├── extensions.py         # Flask-Limiter and CSRF instances
+├── commands/             # Static JSON validation command
 │   ├── __init__.py
 │   └── seed.py
-├── models/               # SQLAlchemy ORM models with GeoAlchemy2
+├── models/               # In-memory entities loaded from static JSON
 │   ├── __init__.py
 │   ├── campus.py
 │   ├── building.py
@@ -48,7 +48,7 @@ app/
 ## 2. The Application Factory Pattern
 The application uses the standard Flask factory function `create_app(config_name=None)`:
 1. Loads configuration from `app/config.py` based on `APP_ENV` environment variable.
-2. Initializes extensions (`db.init_app`, `migrate.init_app`, `limiter.init_app`, `csrf.init_app`).
+2. Initializes Flask-Limiter, CSRF protection, and the in-memory data store loaded from `app/data/`.
 3. Registers Blueprints (`api_v1_bp`, `admin_bp`, `main_bp`).
 4. Registers centralized error handlers for `400`, `401`, `403`, `404`, `429`, and `500`.
 5. Sets up request context lifecycle hooks (generating a unique `X-Request-Id` and timing request duration for structured logging).

@@ -2,9 +2,9 @@
 Campus Navigation System — Location Service
 Generates unified GeoJSON feature collections for client-side map rendering
 and manages campus spatial lookups.
+Zero-database implementation reading from in-memory data store.
 """
 from typing import Dict, Any
-from app.extensions import db
 from app.models.campus import Campus
 from app.models.building import Building
 from app.models.facility import Facility
@@ -23,7 +23,7 @@ class LocationService:
         - Building entrance nodes
         - Walkway paths
         """
-        campus = db.session.get(Campus, campus_id)
+        campus = Campus.get(campus_id)
         if not campus:
             raise AppError("Campus not found.", code="CAMPUS_NOT_FOUND", status_code=404)
 
@@ -113,8 +113,8 @@ class LocationService:
             })
 
         # 5. Walkway Paths (Navigation Edges)
-        edges = NavigationEdge.query.join(NavigationNode, NavigationEdge.source_node_id == NavigationNode.id)\
-            .filter(NavigationNode.campus_id == campus_id).all()
+        all_edges = NavigationEdge.query.all()
+        edges = [e for e in all_edges if e.source_node and e.source_node.campus_id == campus_id]
         
         seen_edges = set()
         for e in edges:

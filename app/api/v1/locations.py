@@ -1,10 +1,10 @@
 """
 Campus Navigation System — Locations API
 Serves specific Building, Room, and Category records.
+Zero-database implementation reading from in-memory data store.
 """
 from flask import jsonify, g
 from app.api.v1 import api_v1_bp
-from app.extensions import db
 from app.models.building import Building
 from app.models.room import Room
 from app.models.category import Category
@@ -14,7 +14,7 @@ from app.utils.errors import AppError
 @api_v1_bp.route("/buildings/<int:building_id>", methods=["GET"])
 def get_building(building_id: int):
     """Retrieve detailed metadata and rooms for a building."""
-    building = db.session.get(Building, building_id)
+    building = Building.get(building_id)
     if not building:
         raise AppError("Building not found.", code="BUILDING_NOT_FOUND", status_code=404)
 
@@ -28,7 +28,7 @@ def get_building(building_id: int):
 @api_v1_bp.route("/rooms/<int:room_id>", methods=["GET"])
 def get_room(room_id: int):
     """Retrieve details for a specific room or lab."""
-    room = db.session.get(Room, room_id)
+    room = Room.get(room_id)
     if not room:
         raise AppError("Room not found.", code="ROOM_NOT_FOUND", status_code=404)
 

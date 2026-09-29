@@ -2,23 +2,23 @@
 
 ## 1. Performance & Latency Targets
 - **NFR-PERF-001**: **Initial Map & Bundle Load**: Total initial frontend payload < 350 KB compressed; DOM ready and map initialized in < 1.5 seconds on a 4G connection.
-- **NFR-PERF-002**: **Search Latency**: Search API response time `P95 < 80 ms` for typical campus database queries.
+- **NFR-PERF-002**: **Search Latency**: Search API response time `P95 < 80 ms` for the bundled campus dataset.
 - **NFR-PERF-003**: **Routing Calculation Latency**: A* graph pathfinding `P95 < 40 ms` for graph networks up to 2,000 nodes.
 - **NFR-PERF-004**: **Concurrency**: Single Cloud Run instance (2 vCPU, 2 GB RAM) handles at least 250 requests per second; auto-scales up to 1,000+ concurrent active sessions without degradation.
 
 ---
 
 ## 2. Scalability & Architecture
-- **NFR-SCAL-001**: **Multi-Campus Multi-Tenancy**: Database schema isolates spatial models by `campus_id` foreign keys with B-Tree and GIST spatial indexes to prevent cross-campus scan overhead.
-- **NFR-SCAL-002**: **Stateless Application Layer**: No sticky sessions, local file storage, or in-memory mutable state inside Cloud Run containers.
-- **NFR-SCAL-003**: **Connection Pooling**: SQLAlchemy connection pooling configured to prevent PostgreSQL connection saturation under traffic spikes (`pool_size=10`, `max_overflow=20`, `pool_recycle=1800`).
+- **NFR-SCAL-001**: **Multi-Campus Data Isolation**: Entity records carry `campus_id` references and API queries filter by campus.
+- **NFR-SCAL-002**: **Stateless Application Layer**: No database or persistent local storage; bundled JSON is loaded at startup. Admin mutations are transient and must not be treated as durable.
+- **NFR-SCAL-003**: **No Database Connections**: The service performs no database connection or pool management.
 
 ---
 
 ## 3. Reliability & Availability
-- **NFR-REL-001**: **Target SLA**: 99.9% uptime in production on Google Cloud Run + Cloud SQL High Availability.
+- **NFR-REL-001**: **Target SLA**: 99.9% uptime in production on Google Cloud Run.
 - **NFR-REL-002**: **Graceful Degradation**: If browser geolocation is denied or times out, the system operates completely on manual origin selection without runtime errors.
-- **NFR-REL-003**: **Database Resilience**: Managed Cloud SQL automated daily backups, point-in-time recovery (PITR) up to 7 days, and transaction rollback on API failure.
+- **NFR-REL-003**: **Static Data Integrity**: Validate JSON datasets before deployment and verify readiness after startup; restore data changes by redeploying a known-good revision.
 
 ---
 

@@ -46,8 +46,7 @@ steps:
       - '--platform=managed'
       - '--allow-unauthenticated'
       - '--set-env-vars=APP_ENV=production,LOG_LEVEL=INFO'
-      - '--set-secrets=DATABASE_URL=DATABASE_URL:latest,SECRET_KEY=SECRET_KEY:latest'
-      - '--add-cloudsql-instances=$PROJECT_ID:$_DEPLOY_REGION:$_CLOUDSQL_INSTANCE'
+      - '--set-secrets=SECRET_KEY=SECRET_KEY:latest'
       - '--cpu=1'
       - '--memory=1Gi'
       - '--min-instances=1'
@@ -59,7 +58,6 @@ substitutions:
   _DEPLOY_REGION: 'us-central1'
   _AR_REGION: 'us-central1'
   _AR_REPO: 'campus-nav-repo'
-  _CLOUDSQL_INSTANCE: 'campus-nav-db'
 
 images:
   - '$_AR_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/campus-nav:$COMMIT_SHA'

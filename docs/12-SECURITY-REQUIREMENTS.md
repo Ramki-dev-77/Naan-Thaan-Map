@@ -4,7 +4,7 @@
 
 | Threat Vector | Potential Impact | Architecture Mitigation |
 |---|---|---|
-| **SQL / Spatial Injection** | Unauthorized data access or geometry corruption | 100% Parameterized queries via SQLAlchemy ORM; coordinate inputs strictly typed as floats with bound validation. |
+| **Invalid Coordinate / Geometry Input** | Malformed route or map data | Request coordinates are parsed and range-checked; static geometry is maintained in reviewed JSON files. |
 | **Cross-Site Scripting (XSS)** | Token theft, malicious map redirects | Jinja2 auto-escaping enabled; Content Security Policy (CSP) headers restricting script sources to trusted origins. |
 | **Cross-Site Request Forgery (CSRF)** | Unauthorized administrative state changes | Flask-WTF CSRF tokens required on all POST, PUT, DELETE operations. |
 | **Denial of Service / Scraping** | Backend overload, map scraping | Flask-Limiter enforcing IP-based rate limits (60/min search, 30/min routing). Cloud Armor at ingress. |

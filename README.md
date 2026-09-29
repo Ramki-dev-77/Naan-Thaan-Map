@@ -3,8 +3,8 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/framework-Flask_3.0-lightgrey.svg)](https://flask.palletsprojects.com/)
 [![Leaflet](https://img.shields.io/badge/maps-Leaflet_1.9-green.svg)](https://leafletjs.com/)
-[![PostgreSQL](https://img.shields.io/badge/database-PostgreSQL_%2B_PostGIS-blue.svg)](https://postgis.net/)
-[![Cloud Run](https://img.shields.io/badge/deployment-Google_Cloud_Run-blue.svg)](https://cloud.google.com/run)
+[![Data](https://img.shields.io/badge/data-static%20JSON-green.svg)](app/data/)
+[![Vercel](https://img.shields.io/badge/deployment-Vercel-black.svg)](https://vercel.com/)
 
 A production-ready, multi-campus, interactive campus navigation platform designed to provide students, visitors, and faculty with real-time pedestrian routing, multi-attribute location search, honest location accuracy modeling, and administrative topology management.
 
@@ -26,8 +26,8 @@ A production-ready, multi-campus, interactive campus navigation platform designe
    - Zero storage of raw user telemetry.
 5. **Role-Based Administration**:
    - CSRF-protected admin console for managing campuses, buildings, rooms, facilities, and the walkable graph network with immutable audit logs.
-6. **Cloud-Native Deployment**:
-   - Ready for Google Cloud Run, Cloud SQL (PostGIS), Secret Manager, and Google Cloud Build CI/CD.
+6. **Serverless Deployment**:
+   - Stateless deployment on Vercel or Google Cloud Run; no database service is required.
 
 ---
 
@@ -35,7 +35,6 @@ A production-ready, multi-campus, interactive campus navigation platform designe
 
 ### 1. Prerequisites
 - Python 3.10+ (Python 3.12 recommended)
-- PostgreSQL 15+ with PostGIS extension (or local test runner)
 
 ### 2. Environment Setup
 ```bash
@@ -52,14 +51,13 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Configure environment
-cp .env.example .env
 ```
 
-### 3. Initialize Database & Seed Demo Data
+Campus data is loaded from the bundled JSON files in `app/data/`; no database or `.env` file is needed for local startup. The SVCE routing graph is in `app/data/svce_network.json`.
+
+### 3. Validate Static Data (Optional)
 ```bash
-# Initialize database tables and seed realistic demo campus
-flask seed-demo
+flask --app run.py validate-data
 ```
 
 ### 4. Run Application
@@ -68,6 +66,18 @@ flask seed-demo
 python run.py
 ```
 Navigate to `http://localhost:5000` in your web browser.
+
+Campus or route data changes must be made in the JSON files and redeployed. Admin changes made through the running application are in-memory only and are lost on process restart; they are not written back to JSON.
+
+## Deploy to Vercel
+
+The repository is configured as a Flask Python function using the root `index.py` entrypoint. Vercel serves the frontend assets from `public/static/`; Flask continues to generate the same `/static/...` URLs. Campus JSON and Jinja templates are bundled with the function.
+
+1. Import this Git repository into Vercel, or install the Vercel CLI and run `vercel` from the project root.
+2. Add `SECRET_KEY` to the Vercel project environment variables for Preview and Production. Generate a value with `python -c "import secrets; print(secrets.token_hex(32))"`.
+3. Deploy. No database, `DATABASE_URL`, build command, or output directory is needed. With the CLI, promote a successful preview using `vercel --prod`.
+
+Vercel sets `VERCEL=1`, so the app selects production settings by default and fails startup if `SECRET_KEY` is missing. Admin authentication uses signed sessions, but admin data edits and audit records are in-memory only and are not persistent. Update JSON files and redeploy to make data changes durable.
 
 ---
 

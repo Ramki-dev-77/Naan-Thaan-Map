@@ -1,11 +1,11 @@
 """
 Campus Navigation System — Pytest Configuration and Test Fixtures
+Database-free: tests run using the in-memory data store.
 """
 import pytest
 from app import create_app
 from app.config import TestingConfig
-from app.extensions import db
-from app.commands.seed import create_demo_data
+from app.data_store import data_store
 
 
 @pytest.fixture(scope="session")
@@ -14,11 +14,8 @@ def app():
     test_app = create_app(TestingConfig)
     
     with test_app.app_context():
-        db.create_all()
-        create_demo_data()
+        data_store.load()
         yield test_app
-        db.session.remove()
-        db.drop_all()
 
 
 @pytest.fixture(scope="function")
@@ -29,6 +26,7 @@ def client(app):
 
 @pytest.fixture(scope="function")
 def app_ctx(app):
-    """Application context for database operations."""
+    """Application context for operations."""
     with app.app_context():
+        data_store.reset()
         yield

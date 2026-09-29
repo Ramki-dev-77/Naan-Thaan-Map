@@ -1,48 +1,60 @@
 """
 Campus Navigation System — Navigation Graph Models
-Models the campus pedestrian walkable network: Nodes (junctions, doors, ramps, stairs)
-and Edges (pathways with distance, accessibility, and surface attributes).
+Models the campus pedestrian walkable network: Nodes and Edges.
+Zero-database in-memory models backed by data_store.
 """
 from datetime import datetime, timezone
-from app.extensions import db
-from app.models.spatial import SpatialPoint, SpatialLineString
+from app.data_store import data_store, ColumnField
 
 
-class NavigationNode(db.Model):
-    __tablename__ = "navigation_nodes"
+class _ModelMeta(type):
+    @property
+    def query(cls):
+        return data_store.get_query(cls)
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    campus_id = db.Column(db.Integer, db.ForeignKey("campuses.id", ondelete="CASCADE"), nullable=False, index=True)
-    building_id = db.Column(db.Integer, db.ForeignKey("buildings.id", ondelete="SET NULL"), nullable=True, index=True)
 
-    # Node types: 'ENTRANCE', 'JUNCTION', 'STAIRS', 'RAMP', 'ELEVATOR', 'DOOR', 'CORRIDOR'
-    node_type = db.Column(db.String(50), default="JUNCTION", nullable=False, index=True)
-    label = db.Column(db.String(150), nullable=True)  # e.g., "CS Block North Entrance"
-    floor = db.Column(db.Integer, default=0, nullable=False)
+class NavigationNode(metaclass=_ModelMeta):
+    id = ColumnField("NavigationNode", "id")
+    campus_id = ColumnField("NavigationNode", "campus_id")
+    building_id = ColumnField("NavigationNode", "building_id")
+    node_type = ColumnField("NavigationNode", "node_type")
+    label = ColumnField("NavigationNode", "label")
+    is_active = ColumnField("NavigationNode", "is_active")
 
-    latitude = db.Column(db.Float, nullable=False)
-    longitude = db.Column(db.Float, nullable=False)
-    location = db.Column(SpatialPoint, nullable=True)
+    def __init__(
+        self,
+        id: int = None,
+        campus_id: int = None,
+        building_id: int = None,
+        node_type: str = "JUNCTION",
+        label: str = None,
+        floor: int = 0,
+        latitude: float = 0.0,
+        longitude: float = 0.0,
+        is_active: bool = True,
+        created_at: str = None,
+        **kwargs
+    ):
+        self.id = int(id) if id is not None else None
+        self.campus_id = int(campus_id) if campus_id is not None else None
+        self.building_id = int(building_id) if building_id is not None else None
+        self.node_type = node_type or "JUNCTION"
+        self.label = label
+        self.floor = int(floor) if floor is not None else 0
+        self.latitude = float(latitude)
+        self.longitude = float(longitude)
+        self.is_active = bool(is_active)
+        self.created_at = created_at or datetime.now(timezone.utc).isoformat()
 
-    is_active = db.Column(db.Boolean, default=True, nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+        # Relationships
+        self.campus = None
+        self.building = None
+        self.outgoing_edges = []
+        self.incoming_edges = []
 
-    # Relationships
-    campus = db.relationship("Campus", back_populates="navigation_nodes")
-    building = db.relationship("Building", back_populates="navigation_nodes")
-
-    outgoing_edges = db.relationship(
-        "NavigationEdge",
-        foreign_keys="NavigationEdge.source_node_id",
-        back_populates="source_node",
-        cascade="all, delete-orphan",
-    )
-    incoming_edges = db.relationship(
-        "NavigationEdge",
-        foreign_keys="NavigationEdge.destination_node_id",
-        back_populates="destination_node",
-        cascade="all, delete-orphan",
-    )
+    @classmethod
+    def get(cls, node_id: int):
+        return data_store.get_by_id(cls, node_id)
 
     def to_dict(self):
         return {
@@ -59,31 +71,46 @@ class NavigationNode(db.Model):
             "is_active": self.is_active,
         }
 
+    def __repr__(self):
+        return f"<NavigationNode id={self.id} type='{self.node_type}' label='{self.label}'>"
 
-class NavigationEdge(db.Model):
-    __tablename__ = "navigation_edges"
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    source_node_id = db.Column(db.Integer, db.ForeignKey("navigation_nodes.id", ondelete="CASCADE"), nullable=False, index=True)
-    destination_node_id = db.Column(db.Integer, db.ForeignKey("navigation_nodes.id", ondelete="CASCADE"), nullable=False, index=True)
+class NavigationEdge(metaclass=_ModelMeta):
+    id = ColumnField("NavigationEdge", "id")
+    source_node_id = ColumnField("NavigationEdge", "source_node_id")
+    destination_node_id = ColumnField("NavigationEdge", "destination_node_id")
+    accessible = ColumnField("NavigationEdge", "accessible")
+    stairs = ColumnField("NavigationEdge", "stairs")
 
-    # Physical distance in meters
-    distance = db.Column(db.Float, nullable=False)
-    
-    # Accessibility routing flags
-    accessible = db.Column(db.Boolean, default=True, nullable=False, index=True)
-    stairs = db.Column(db.Boolean, default=False, nullable=False, index=True)
-    
-    # Path types: 'PAVED_WALKWAY', 'RAMP', 'STAIRWAY', 'CORRIDOR', 'ELEVATOR', 'CROSSWALK'
-    path_type = db.Column(db.String(50), default="PAVED_WALKWAY", nullable=False)
-    is_bidirectional = db.Column(db.Boolean, default=True, nullable=False)
+    def __init__(
+        self,
+        id: int = None,
+        source_node_id: int = None,
+        destination_node_id: int = None,
+        distance: float = 0.0,
+        accessible: bool = True,
+        stairs: bool = False,
+        path_type: str = "PAVED_WALKWAY",
+        is_bidirectional: bool = True,
+        **kwargs
+    ):
+        self.id = int(id) if id is not None else None
+        self.source_node_id = int(source_node_id) if source_node_id is not None else None
+        self.destination_node_id = int(destination_node_id) if destination_node_id is not None else None
+        self.distance = float(distance)
+        self.accessible = bool(accessible)
+        self.stairs = bool(stairs)
+        self.path_type = path_type or "PAVED_WALKWAY"
+        self.is_bidirectional = bool(is_bidirectional)
 
-    # Geometry line for visual rendering if needed
-    geometry = db.Column(SpatialLineString, nullable=True)
+        # Relationships
+        self.source_node = None
+        self.destination_node = None
+        self.campus_id = None
 
-    # Relationships
-    source_node = db.relationship("NavigationNode", foreign_keys=[source_node_id], back_populates="outgoing_edges")
-    destination_node = db.relationship("NavigationNode", foreign_keys=[destination_node_id], back_populates="incoming_edges")
+    @classmethod
+    def get(cls, edge_id: int):
+        return data_store.get_by_id(cls, edge_id)
 
     def to_dict(self):
         return {
@@ -96,3 +123,6 @@ class NavigationEdge(db.Model):
             "path_type": self.path_type,
             "is_bidirectional": self.is_bidirectional,
         }
+
+    def __repr__(self):
+        return f"<NavigationEdge id={self.id} {self.source_node_id}->{self.destination_node_id} dist={self.distance}>"
