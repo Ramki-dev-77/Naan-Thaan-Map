@@ -2,6 +2,7 @@
 Campus Navigation System — Routing Engine Test Suite
 Tests Haversine mathematics, A* pathfinding, accessibility constraints, and nearest-node snapping.
 """
+import heapq
 import pytest
 from app.services.routing_service import (
     haversine_distance,
@@ -13,7 +14,7 @@ from app.services.routing_service import (
 from app.models.campus import Campus
 from app.models.room import Room
 from app.models.building import Building
-from app.models.navigation import NavigationNode
+from app.models.navigation import NavigationEdge, NavigationNode
 from app.utils.errors import AppError
 
 
@@ -135,4 +136,181 @@ def test_multi_route_options_and_differences(app_ctx):
     if accessible_route:
         assert accessible_route["is_accessible"] is True
         assert len(accessible_route["difference"]) > 0
+
+
+def test_svce_astar_finds_shortest_mixed_walkway_route(app_ctx):
+    """A* must not stop at a longer route when discounted path costs are used."""
+    campus = Campus.query.filter_by(slug="svce-sriperumbudur").first()
+    start = NavigationNode.get(230)
+    target = NavigationNode.get(242)
+    assert campus is not None
+    assert start.campus_id == target.campus_id == campus.id
+
+    edges = [
+        edge for edge in NavigationEdge.query.all()
+        if edge.source_node and edge.source_node.campus_id == campus.id
+        and edge.destination_node and edge.destination_node.is_active
+    ]
+
+    def edge_cost(edge):
+        if edge.stairs:
+            return edge.distance * 12.0
+        if edge.path_type == "MAIN_AVENUE":
+            return edge.distance * 0.65
+        if edge.path_type == "PAVED_WALKWAY":
+            return edge.distance * 0.95
+        return edge.distance * 2.2
+
+    distances = {start.id: 0.0}
+    queue = [(0.0, start.id)]
+    while queue:
+        cost, node_id = heapq.heappop(queue)
+        if cost != distances[node_id]:
+            continue
+        if node_id == target.id:
+            break
+        for edge in edges:
+            if edge.source_node_id == node_id:
+                neighbor_id = edge.destination_node_id
+            elif edge.is_bidirectional and edge.destination_node_id == node_id:
+                neighbor_id = edge.source_node_id
+            else:
+                continue
+            candidate = cost + edge_cost(edge)
+            if candidate < distances.get(neighbor_id, float("inf")):
+                distances[neighbor_id] = candidate
+                heapq.heappush(queue, (candidate, neighbor_id))
+
+    path, _ = CampusPedestrianRoutingService.find_optimal_path(
+        campus.id, start.id, target.id, mode="main_avenue"
+    )
+    actual_cost = sum(
+        min(
+            edge_cost(edge) for edge in edges
+            if (edge.source_node_id == source.id and edge.destination_node_id == destination.id)
+            or (edge.is_bidirectional and edge.source_node_id == destination.id and edge.destination_node_id == source.id)
+        )
+        for source, destination in zip(path, path[1:])
+    )
+
+    assert actual_cost == pytest.approx(distances[target.id], abs=0.01)
+
+
+def test_svce_shortest_routes_use_all_walkable_edge_types(app_ctx):
+    """SVCE routes traverse connected road and pedestrian edges with network geometry."""
+    campus = Campus.query.filter_by(slug="svce-sriperumbudur").first()
+    nodes = {node.id: node for node in NavigationNode.query.filter_by(campus_id=campus.id, is_active=True).all()}
+    edges = [
+        edge for edge in NavigationEdge.query.all()
+        if edge.source_node and edge.source_node.campus_id == campus.id
+        and edge.destination_node and edge.destination_node.is_active
+    ]
+    node_ids = set(nodes)
+    assert edges
+    assert all(
+        edge.source_node_id in node_ids and edge.destination_node_id in node_ids and edge.distance > 0
+        for edge in edges
+    )
+    assert {edge.path_type for edge in edges} >= {"MAIN_AVENUE", "PAVED_WALKWAY"}
+
+    adjacency = {node_id: set() for node_id in node_ids}
+    for edge in edges:
+        adjacency[edge.source_node_id].add(edge.destination_node_id)
+        if edge.is_bidirectional:
+            adjacency[edge.destination_node_id].add(edge.source_node_id)
+    reachable = set()
+    pending = [next(iter(node_ids))]
+    while pending:
+        node_id = pending.pop()
+        if node_id in reachable:
+            continue
+        reachable.add(node_id)
+        pending.extend(adjacency[node_id] - reachable)
+    assert reachable == node_ids
+
+    def shortest_distance(start_id, target_id, allowed_types=None):
+        distances = {start_id: 0.0}
+        queue = [(0.0, start_id)]
+        while queue:
+            cost, node_id = heapq.heappop(queue)
+            if cost != distances[node_id]:
+                continue
+            if node_id == target_id:
+                return cost
+            for edge in edges:
+                if allowed_types and edge.path_type not in allowed_types:
+                    continue
+                if edge.source_node_id == node_id:
+                    neighbor_id = edge.destination_node_id
+                elif edge.is_bidirectional and edge.destination_node_id == node_id:
+                    neighbor_id = edge.source_node_id
+                else:
+                    continue
+                candidate = cost + edge.distance
+                if candidate < distances.get(neighbor_id, float("inf")):
+                    distances[neighbor_id] = candidate
+                    heapq.heappush(queue, (candidate, neighbor_id))
+        return float("inf")
+
+    def selected_edges(path):
+        return [
+            next(
+                edge for edge in edges
+                if (edge.source_node_id == source.id and edge.destination_node_id == destination.id)
+                or (edge.is_bidirectional and edge.source_node_id == destination.id and edge.destination_node_id == source.id)
+            )
+            for source, destination in zip(path, path[1:])
+        ]
+
+    road_start, road_end = nodes[209], nodes[155]
+    road_path, _ = CampusPedestrianRoutingService.find_optimal_path(
+        campus.id, road_start.id, road_end.id, mode="fastest"
+    )
+    assert [node.id for node in road_path] == [road_start.id, road_end.id]
+    assert selected_edges(road_path)[0].path_type == "MAIN_AVENUE"
+
+    mixed_path, mixed_distance = CampusPedestrianRoutingService.find_optimal_path(
+        campus.id, 175, 215, mode="fastest"
+    )
+    mixed_types = {edge.path_type for edge in selected_edges(mixed_path)}
+    assert {"MAIN_AVENUE", "PAVED_WALKWAY"}.issubset(mixed_types)
+    assert mixed_distance == pytest.approx(shortest_distance(175, 215), abs=0.01)
+
+    walkway_path, _ = CampusPedestrianRoutingService.find_optimal_path(
+        campus.id, 148, 149, mode="fastest"
+    )
+    assert [edge.path_type for edge in selected_edges(walkway_path)] == ["PAVED_WALKWAY"]
+    walkway_node = nodes[148]
+    assert CampusPedestrianRoutingService.snap_to_nearest_node(
+        campus.id, walkway_node.latitude, walkway_node.longitude
+    ).id == walkway_node.id
+
+    building_start, building_end = nodes[230], nodes[242]
+    assert building_start.node_type == building_end.node_type == "ENTRANCE"
+    assert building_start.building_id != building_end.building_id
+    building_path, _ = CampusPedestrianRoutingService.find_optimal_path(
+        campus.id, building_start.id, building_end.id, mode="fastest"
+    )
+    assert "PAVED_WALKWAY" in {edge.path_type for edge in selected_edges(building_path)}
+
+    all_edge_distance = shortest_distance(210, 106)
+    road_only_distance = shortest_distance(210, 106, {"MAIN_AVENUE"})
+    assert all_edge_distance == pytest.approx(408.3, abs=0.1)
+    assert road_only_distance == pytest.approx(742.1, abs=0.1)
+    assert all_edge_distance < road_only_distance
+
+    route = RoutingService.calculate_campus_route(
+        campus.id,
+        {"lat": nodes[210].latitude, "lng": nodes[210].longitude},
+        {"type": "node", "id": 106},
+        accessible=False,
+    )
+    expected_coordinates = [
+        [round(node.longitude, 6), round(node.latitude, 6)]
+        for node in CampusPedestrianRoutingService.find_optimal_path(
+            campus.id, 210, 106, mode="fastest"
+        )[0]
+    ]
+    assert route["geometry"]["coordinates"] == expected_coordinates
+    assert all(-180 <= longitude <= 180 and -90 <= latitude <= 90 for longitude, latitude in expected_coordinates)
 

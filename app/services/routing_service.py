@@ -107,9 +107,10 @@ class CampusPedestrianRoutingService(RoutingProviderInterface):
         all_edges = NavigationEdge.query.all()
         edges = [e for e in all_edges if e.source_node and e.source_node.campus_id == campus_id]
 
-        adj: Dict[int, List[Tuple[int, float, bool, bool, str]]] = {nid: [] for nid in nodes_dict}
+        adj: Dict[int, List[Tuple[int, float, bool, bool, str, float]]] = {nid: [] for nid in nodes_dict}
 
         is_accessible_mode = (mode == "accessible" or accessible_only)
+        heuristic_scale = 1.0
 
         for edge in edges:
             if edge.source_node_id in adj and edge.destination_node_id in nodes_dict:
@@ -119,10 +120,7 @@ class CampusPedestrianRoutingService(RoutingProviderInterface):
                 
                 # Weight calculation depending on selected routing mode
                 weight = edge.distance
-                if mode == "fastest":
-                    if edge.stairs:
-                        weight *= 1.2  # Slight pedestrian cost for stairs, but available for shortcuts
-                elif mode == "main_avenue":
+                if mode == "main_avenue":
                     if edge.stairs:
                         weight *= 12.0  # Strongly avoid stairs
                     if edge.path_type == "MAIN_AVENUE":
@@ -135,54 +133,73 @@ class CampusPedestrianRoutingService(RoutingProviderInterface):
                     if edge.path_type == "RAMP":
                         weight *= 0.9  # Prefer well-built ramps
 
-                adj[edge.source_node_id].append((edge.destination_node_id, weight, edge.accessible, edge.stairs, edge.path_type))
+                geographic_distance = haversine_distance(
+                    edge.source_node.latitude,
+                    edge.source_node.longitude,
+                    edge.destination_node.latitude,
+                    edge.destination_node.longitude,
+                )
+                if geographic_distance > 0:
+                    heuristic_scale = min(heuristic_scale, weight / geographic_distance)
+
+                adj[edge.source_node_id].append((
+                    edge.destination_node_id,
+                    weight,
+                    edge.accessible,
+                    edge.stairs,
+                    edge.path_type,
+                    edge.distance,
+                ))
 
                 if edge.is_bidirectional and edge.destination_node_id in adj:
-                    adj[edge.destination_node_id].append((edge.source_node_id, weight, edge.accessible, edge.stairs, edge.path_type))
+                    adj[edge.destination_node_id].append((
+                        edge.source_node_id,
+                        weight,
+                        edge.accessible,
+                        edge.stairs,
+                        edge.path_type,
+                        edge.distance,
+                    ))
 
         # A* priority queue: (f_score, current_g_score, current_node_id)
         open_set = []
-        start_h = haversine_distance(nodes_dict[start_node_id].latitude, nodes_dict[start_node_id].longitude,
-                                     target_node.latitude, target_node.longitude)
+        start_h = haversine_distance(
+            nodes_dict[start_node_id].latitude,
+            nodes_dict[start_node_id].longitude,
+            target_node.latitude,
+            target_node.longitude,
+        ) * heuristic_scale
         heapq.heappush(open_set, (start_h, 0.0, start_node_id))
 
-        came_from: Dict[int, int] = {}
+        came_from: Dict[int, Tuple[int, float]] = {}
         g_scores: Dict[int, float] = {nid: float("inf") for nid in nodes_dict}
         g_scores[start_node_id] = 0.0
 
-        visited = set()
-
         while open_set:
             f, current_g, current_id = heapq.heappop(open_set)
+            if current_g > g_scores[current_id]:
+                continue
 
             if current_id == target_node_id:
                 # Reconstruct path
                 path = []
+                physical_dist = 0.0
                 curr = current_id
                 while curr in came_from:
                     path.append(nodes_dict[curr])
-                    curr = came_from[curr]
+                    curr, edge_distance = came_from[curr]
+                    physical_dist += edge_distance
                 path.append(nodes_dict[start_node_id])
                 path.reverse()
-
-                # Calculate true physical distance along path in meters
-                physical_dist = 0.0
-                for i in range(len(path) - 1):
-                    physical_dist += haversine_distance(path[i].latitude, path[i].longitude,
-                                                        path[i + 1].latitude, path[i + 1].longitude)
                 return path, max(physical_dist, 1.0)
 
-            if current_id in visited:
-                continue
-            visited.add(current_id)
-
-            for neighbor_id, weight, is_acc, has_stairs, ptype in adj.get(current_id, []):
+            for neighbor_id, weight, is_acc, has_stairs, ptype, edge_distance in adj.get(current_id, []):
                 tentative_g = current_g + weight
                 if tentative_g < g_scores[neighbor_id]:
-                    came_from[neighbor_id] = current_id
+                    came_from[neighbor_id] = (current_id, edge_distance)
                     g_scores[neighbor_id] = tentative_g
                     h = haversine_distance(nodes_dict[neighbor_id].latitude, nodes_dict[neighbor_id].longitude,
-                                           target_node.latitude, target_node.longitude)
+                                           target_node.latitude, target_node.longitude) * heuristic_scale
                     heapq.heappush(open_set, (tentative_g + h, tentative_g, neighbor_id))
 
         # If we reached here, no path was found

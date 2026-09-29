@@ -83,6 +83,8 @@ def test_svce_map_search_and_route(client):
     assert map_data["type"] == "FeatureCollection"
     walkways = [feature for feature in map_data["features"] if feature["properties"].get("layer") == "walkway"]
     assert walkways
+    path_types = {feature["properties"].get("path_type") for feature in walkways}
+    assert {"MAIN_AVENUE", "PAVED_WALKWAY"}.issubset(path_types)
 
     search_res = client.get("/api/v1/search?q=Library&campus_id=2")
     assert search_res.status_code == 200
@@ -101,6 +103,20 @@ def test_svce_map_search_and_route(client):
     coordinates = route["geometry"]["coordinates"]
     assert len(coordinates) >= 2
     assert all(len(point) == 2 and all(isinstance(value, (int, float)) for value in point) for point in coordinates)
+
+    def normalized_segment(segment):
+        return tuple((round(point[0], 6), round(point[1], 6)) for point in segment)
+
+    walkway_segments = {
+        normalized_segment(feature["geometry"]["coordinates"])
+        for feature in walkways
+        if feature["properties"].get("path_type") == "PAVED_WALKWAY"
+    }
+    returned_segments = [normalized_segment(segment) for segment in zip(coordinates, coordinates[1:])]
+    assert any(
+        segment in walkway_segments or tuple(reversed(segment)) in walkway_segments
+        for segment in returned_segments
+    )
 
 
 def test_routes_api_invalid_coords(client):
